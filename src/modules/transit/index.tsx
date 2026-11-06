@@ -1,16 +1,15 @@
-import { MapPinIcon, TrainFrontIcon } from "lucide-react";
+import { ChevronDownIcon, MapPinIcon, TrainFrontIcon } from "lucide-react";
 /**
  * Departures: the next trains, buses and trams from one Swiss stop, from
  * transport.opendata.ch (free, no account), fetched by the backend.
  */
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "../../components/ui/button";
-import { Block, Desc, Row } from "../../components/ui/card";
-import { Input } from "../../components/ui/form";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Block, Row } from "../../components/ui/card";
 import { useLocale, useT } from "../../core/i18n";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { useNow } from "../ai-agents/common/format";
+import { IslandPlacePicker, type PickerItem, PlacePicker, remember } from "../picker";
 import { tools } from "../tools/bridge";
 
 const ACCENT = "#EB0000";
@@ -28,6 +27,69 @@ const station: SettingDef<Station | null> = {
 	description: "transit.station.desc",
 	default: { id: "8506302", name: "St. Gallen" },
 };
+
+/** Stops chosen before, newest first, offered for a quick switch. */
+const recentStations: SettingDef<Station[]> = { key: "transit.recent", label: "transit.station.label", default: [] };
+const sameStation = (a: Station, b: Station) => a.id === b.id;
+const stationItem = (s: Station): PickerItem<Station> => ({ key: s.id, title: s.name, value: s });
+
+interface Location {
+	id: string | null;
+	name: string | null;
+	icon?: string | null;
+}
+
+/** Search, recent stops and saving the choice, for the island and the settings. */
+function useStationPicker() {
+	const t = useT();
+	const current = useSetting(station);
+	const recentList = useSetting(recentStations);
+	const search = useCallback(async (query: string) => {
+		const r = await transit<{ stations?: Location[] }>("locations", { query, type: "station" });
+		const seen = new Set<string>();
+		const items: PickerItem<Station>[] = [];
+		for (const s of r?.stations ?? []) {
+			if (!s.id || !s.name || seen.has(s.id)) continue;
+			seen.add(s.id);
+			items.push(stationItem({ id: s.id, name: s.name }));
+		}
+		return items.slice(0, 8);
+	}, []);
+	const recent = useMemo(() => recentList.filter((s) => s.id !== current?.id).map(stationItem), [recentList, current]);
+	const choose = useCallback(
+		(next: Station) => {
+			setSetting(station, next);
+			setSetting(recentStations, remember(current ? [current, ...recentList] : recentList, next, sameStation));
+		},
+		[current, recentList],
+	);
+	return {
+		search,
+		recent,
+		choose,
+		placeholder: t("transit.station.placeholder"),
+		notFound: t("transit.station.notFound"),
+		failed: t("transit.offline"),
+		accent: ACCENT,
+		icon: <TrainFrontIcon size={13} className="flex-none" color="#ff6b6b" />,
+	};
+}
+
+function StationChooser({ onDone }: { onDone?: () => void }) {
+	const { choose, ...picker } = useStationPicker();
+	return (
+		<IslandPlacePicker
+			{...picker}
+			owner="transit.station"
+			className="h-full px-1 py-0.5"
+			onPick={(next) => {
+				choose(next);
+				onDone?.();
+			}}
+			onCancel={onDone}
+		/>
+	);
+}
 
 interface Departure {
 	stop: { departureTimestamp: number | null; delay: number | null; platform: string | null };
@@ -50,13 +112,19 @@ function lineStyle(category: string) {
 }
 
 function TransitPanel() {
+	const stop = useSetting(station);
+	const [picking, setPicking] = useState(false);
+	if (picking || !stop) return <StationChooser onDone={stop ? () => setPicking(false) : undefined} />;
+	return <Departures stop={stop} onChangeStop={() => setPicking(true)} />;
+}
+
+function Departures({ stop, onChangeStop }: { stop: Station; onChangeStop: () => void }) {
 	const t = useT();
 	const locale = useLocale();
-	const stop = useSetting(station);
 	const now = useNow(15_000);
 	const [rows, setRows] = useState<Departure[] | null>(null);
 	const [error, setError] = useState(false);
-	const id = stop?.id;
+	const id = stop.id;
 	const alive = useRef(true);
 
 	const load = useCallback(() => {
@@ -81,15 +149,22 @@ function TransitPanel() {
 		};
 	}, [load]);
 
-	if (!stop) return <div className="m-auto text-[12.5px] text-text-dim">{t("transit.noStation")}</div>;
 	const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" });
 	const upcoming = (rows ?? []).filter((r) => (r.stop.departureTimestamp ?? 0) * 1000 > now - 30_000).slice(0, ROWS);
 
 	return (
 		<div className="flex h-full flex-col gap-1 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="flex items-center gap-1.5 text-[12.5px] font-[650] text-text-dim">
-				<MapPinIcon size={12} color={ACCENT} />
-				<span className="truncate">{stop.name}</span>
+				<button
+					type="button"
+					title={t("transit.station.change")}
+					className="-mx-1.5 flex min-w-0 items-center gap-1.5 rounded-full px-1.5 py-0.5 transition-[background] hover:bg-white/10 hover:text-text"
+					onClick={onChangeStop}
+				>
+					<MapPinIcon size={12} color={ACCENT} className="flex-none" />
+					<span className="truncate">{stop.name}</span>
+					<ChevronDownIcon size={12} className="flex-none opacity-70" />
+				</button>
 				{error && <span className="ml-auto text-warn">{t("transit.offline")}</span>}
 			</div>
 			{rows === null && !error && <p className="py-2 text-[12.5px] text-text-dim">{t("transit.loading")}</p>}
@@ -133,49 +208,14 @@ function TransitPanel() {
 function TransitSettings() {
 	const t = useT();
 	const current = useSetting(station);
-	const [query, setQuery] = useState("");
-	const [busy, setBusy] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
-	const search = async (e: FormEvent) => {
-		e.preventDefault();
-		if (!query.trim()) return;
-		setBusy(true);
-		setError(null);
-		try {
-			const r = await transit<{ stations?: { id: string | null; name: string | null }[] }>("locations", {
-				query: query.trim(),
-				type: "station",
-			});
-			const hit = r?.stations?.find((s) => s.id && s.name);
-			if (hit?.id && hit.name) {
-				setSetting(station, { id: hit.id, name: hit.name });
-				setQuery("");
-			} else setError(t("transit.station.notFound"));
-		} catch {
-			setError(t("transit.offline"));
-		} finally {
-			setBusy(false);
-		}
-	};
+	const { choose, ...picker } = useStationPicker();
 
 	return (
 		<Block>
 			<Row label={t("transit.station.label")} desc={t("transit.station.desc")}>
 				{current && <span className="text-[13px] font-[650]">{current.name}</span>}
 			</Row>
-			<form className="flex gap-2" onSubmit={search}>
-				<Input
-					className="flex-1"
-					value={query}
-					placeholder={t("transit.station.placeholder")}
-					onChange={(e) => setQuery(e.target.value)}
-				/>
-				<Button type="submit" variant="primary" disabled={busy || !query.trim()}>
-					{t("transit.station.search")}
-				</Button>
-			</form>
-			{error && <Desc tone="error">{error}</Desc>}
+			<PlacePicker {...picker} onPick={choose} className="max-h-64" />
 		</Block>
 	);
 }

@@ -35,6 +35,20 @@ pub fn file(path: &Path) {
     });
 }
 
+/// Plays an audio file on this thread until it ends; `false` when it can't be
+/// played.
+pub fn play_blocking(path: &Path) -> bool {
+    static NEXT: AtomicU32 = AtomicU32::new(0);
+    let alias = format!("island-blocking-{}", NEXT.fetch_add(1, Ordering::Relaxed));
+    let path = path.to_string_lossy().replace('"', "");
+    if !mci(&format!("open \"{path}\" type mpegvideo alias {alias}")) {
+        return false;
+    }
+    let played = mci(&format!("play {alias} wait"));
+    mci(&format!("close {alias}"));
+    played
+}
+
 #[cfg(windows)]
 fn mci(command: &str) -> bool {
     use windows::Win32::Media::Multimedia::mciSendStringW;

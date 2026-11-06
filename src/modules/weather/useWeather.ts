@@ -158,14 +158,27 @@ export function useWeather(place: WeatherPlace | null, unit: WeatherUnit, enable
 	return state;
 }
 
-/** First match of a place search, in the UI language. */
-export async function searchPlace(name: string, language: string): Promise<WeatherPlace | null> {
-	const params = new URLSearchParams({ name, count: "1", language: language.split("-")[0], format: "json" });
+/** Matches of a place search, in the UI language, best first. */
+export async function searchPlaces(name: string, language: string, count = 8): Promise<WeatherPlace[]> {
+	const params = new URLSearchParams({
+		name,
+		count: String(count),
+		language: language.split("-")[0],
+		format: "json",
+	});
 	const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?${params}`);
 	if (!res.ok) throw new Error(`HTTP ${res.status}`);
 	const body = (await res.json()) as {
-		results?: { name: string; country?: string; latitude: number; longitude: number }[];
+		results?: { name: string; country?: string; admin1?: string; latitude: number; longitude: number }[];
 	};
-	const hit = body.results?.[0];
-	return hit ? { name: hit.name, country: hit.country, latitude: hit.latitude, longitude: hit.longitude } : null;
+	return (body.results ?? []).map((hit) => ({
+		name: hit.name,
+		country: hit.country,
+		region: hit.admin1 && hit.admin1 !== hit.name ? hit.admin1 : undefined,
+		latitude: hit.latitude,
+		longitude: hit.longitude,
+	}));
 }
+
+/** "Canton, Country" under a place's name. */
+export const placeDetail = (place: WeatherPlace) => [place.region, place.country].filter(Boolean).join(", ");

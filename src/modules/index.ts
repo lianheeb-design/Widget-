@@ -1,6 +1,7 @@
 import type { IslandModule } from "../core/types";
 import { activitiesModule } from "./activities";
 import { aiAgentsModule } from "./ai-agents";
+import { alarmModule } from "./alarm";
 import { askModule } from "./ask";
 import { chatgptModule } from "./chatgpt";
 import { clipboardModule } from "./clipboard";
@@ -57,4 +58,5 @@ export const modules: IslandModule[] = [
 	hydrationModule,
 	monitorModule,
 	clockModule,
+	alarmModule,
 ];

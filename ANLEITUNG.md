@@ -13,6 +13,8 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Insel anpassen** (*Einstellungen → Darstellung*): Grösse, Farbe, Deckkraft, Ecken und die **Ruhe-Anzeige** (Uhrzeit, Datum, Temperatur, Akku, nächster Termin).
 - **Schnellstart**: eigene Knöpfe für Programme, Dateien, Ordner und Webseiten.
 - **Countdown**, **Abfahrten** (Schweizer ÖV ab deiner Haltestelle), **Snake** und ein **Fokus-Modus** im Timer (Fokus und Pause im Wechsel, die Insel bleibt dabei ruhig).
+- **Wecker** (neben „Uhr & Kalender“): Weckzeiten einmalig oder an gewählten Wochentagen, mit Name. Beim Klingeln öffnet sich die Insel mit einem Windows-Weckton, bis du auf *Ausschalten* oder *Schlummern* klickst. Weckton und Schlummerdauer in *Einstellungen → Wecker*. Der Wecker klingelt, solange der PC an ist; aus dem Energiesparmodus weckt er ihn nicht.
+- **Ort und Haltestelle wählen**: Beim Wetter und bei den Abfahrten auf den Ortsnamen in der Insel klicken, tippen und den richtigen Treffer aus der Liste wählen. Zuletzt verwendete Orte stehen gleich zur Auswahl.
 - **Dunkelmodus** per Knopf und **Nachtlicht**-Einstellungen in der Steuerung.
 - **Farbpipette** (in der Steuerung): Fahr mit der Maus über eine beliebige Stelle am Bildschirm, und die Insel zeigt dir live den Farbcode. Ein Klick kopiert ihn (z. B. `#3DDC84`), Esc oder Rechtsklick bricht ab. Die letzte Farbe bleibt als Kachel zum erneuten Kopieren.
 - **Modul „Notizen“**: eine Schnellnotiz und eine To-do-Liste zum Abhaken. Alles bleibt gespeichert, auch nach einem Neustart.

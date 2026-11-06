@@ -3,6 +3,8 @@ import type { SettingDef } from "../../core/settings";
 export interface WeatherPlace {
 	name: string;
 	country?: string;
+	/** Canton, state or region, to tell places of the same name apart. */
+	region?: string;
 	latitude: number;
 	longitude: number;
 }
@@ -26,6 +28,16 @@ export const weatherPlace: SettingDef<WeatherPlace | null> = {
 	description: "weather.place.desc",
 	default: { name: "St. Gallen", country: "Schweiz", latitude: 47.4239, longitude: 9.3748 },
 };
+
+/** Places chosen before, newest first, offered for a quick switch. */
+export const weatherRecent: SettingDef<WeatherPlace[]> = {
+	key: "weather.recent",
+	label: "weather.place.label",
+	default: [],
+};
+
+export const sameWeatherPlace = (a: WeatherPlace, b: WeatherPlace) =>
+	Math.abs(a.latitude - b.latitude) < 0.01 && Math.abs(a.longitude - b.longitude) < 0.01;
 
 export const weatherUnit: SettingDef<WeatherUnit> = {
 	key: "weather.unit",

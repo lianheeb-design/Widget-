@@ -77,6 +77,18 @@ pub fn action(action: &str, payload: &Value) -> Option<Result<Value, String>> {
             imp::set_dark_mode(payload["on"].as_bool().unwrap_or(true)).map(|_| Value::Null)
         }
         "transit" => transit(payload),
+        "alarm_start" => {
+            alarm::start(tone_of(payload));
+            Ok(Value::Null)
+        }
+        "alarm_stop" => {
+            alarm::stop();
+            Ok(Value::Null)
+        }
+        "alarm_test" => {
+            alarm::test(tone_of(payload));
+            Ok(Value::Null)
+        }
         "open_settings" => {
             let uri = payload["uri"].as_str().unwrap_or_default();
             if !uri.starts_with("ms-settings:") {
@@ -86,6 +98,75 @@ pub fn action(action: &str, payload: &Value) -> Option<Result<Value, String>> {
         }
         _ => return None,
     })
+}
+
+/// Alarm tone 1–10 (Windows' `Alarm01.wav` … `Alarm10.wav`).
+fn tone_of(payload: &Value) -> u8 {
+    payload["tone"].as_u64().unwrap_or(1).clamp(1, 10) as u8
+}
+
+/// The alarm clock's sound. It rings here in the backend, so it keeps going
+/// even when the island's WebView is throttled in the background, until
+/// `stop` or a safety limit.
+mod alarm {
+    use std::path::PathBuf;
+    use std::sync::atomic::{AtomicU64, Ordering};
+    use std::time::{Duration, Instant};
+
+    /// Bumped by every start and stop: a ringing loop ends once it changes.
+    static GENERATION: AtomicU64 = AtomicU64::new(0);
+    /// Rings at most this long, in case the island never says stop.
+    const LIMIT: Duration = Duration::from_secs(10 * 60);
+    const PAUSE: Duration = Duration::from_millis(600);
+
+    fn tone_path(tone: u8) -> Option<PathBuf> {
+        let windows = std::env::var_os("WINDIR").or_else(|| std::env::var_os("SystemRoot"))?;
+        let path = PathBuf::from(windows)
+            .join("Media")
+            .join(format!("Alarm{tone:02}.wav"));
+        path.exists().then_some(path)
+    }
+
+    fn ring_once(tone: u8) {
+        let played = tone_path(tone).is_some_and(|path| crate::sound::play_blocking(&path));
+        if !played {
+            // No alarm files (e.g. a stripped-down Windows): the reminder sound.
+            crate::sound::system("Notification.Looping.Alarm");
+            std::thread::sleep(Duration::from_secs(3));
+        }
+    }
+
+    pub fn start(tone: u8) {
+        let generation = GENERATION.fetch_add(1, Ordering::SeqCst) + 1;
+        std::thread::spawn(move || {
+            let began = Instant::now();
+            while GENERATION.load(Ordering::SeqCst) == generation && began.elapsed() < LIMIT {
+                ring_once(tone);
+                std::thread::sleep(PAUSE);
+            }
+        });
+    }
+
+    pub fn stop() {
+        GENERATION.fetch_add(1, Ordering::SeqCst);
+    }
+
+    /// One ring, to try the tone in the settings.
+    pub fn test(tone: u8) {
+        std::thread::spawn(move || ring_once(tone));
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn stop_ends_the_current_generation() {
+            let before = GENERATION.load(Ordering::SeqCst);
+            stop();
+            assert!(GENERATION.load(Ordering::SeqCst) > before);
+        }
+    }
 }
 
 /// Swiss public transport (transport.opendata.ch, free, no key): `kind` is

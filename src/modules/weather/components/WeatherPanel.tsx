@@ -1,7 +1,10 @@
-import { MapPinIcon, SunriseIcon, SunsetIcon, WindIcon } from "lucide-react";
+import { ChevronDownIcon, MapPinIcon, SunriseIcon, SunsetIcon, WindIcon } from "lucide-react";
+import { useState } from "react";
 import { Empty } from "../../../components/ui/text";
 import { useLocale, useT } from "../../../core/i18n";
+import { IslandPlacePicker } from "../../picker";
 import { SkyIcon, skyColor, skyGradient, skyLabel, skyOf } from "../codes";
+import { useWeatherPicker } from "../place";
 import type { WeatherPlace } from "../settings";
 import type { WeatherData, WeatherHour, WeatherState } from "../useWeather";
 
@@ -9,12 +12,72 @@ const round = (n: number) => Math.round(n);
 
 export function WeatherPanel({ state, place }: { state: WeatherState; place: WeatherPlace | null }) {
 	const t = useT();
-	if (!place) return <Empty>{t("weather.noPlace")}</Empty>;
-	if (!state.data) return <Empty>{state.error ? t("weather.offline") : t("weather.loading")}</Empty>;
-	return <Forecast data={state.data} place={place} stale={state.error} />;
+	const [picking, setPicking] = useState(false);
+	if (picking || !place) return <PlaceChooser onDone={place ? () => setPicking(false) : undefined} />;
+	const change = () => setPicking(true);
+	if (!state.data)
+		return (
+			<Empty>
+				<span className="flex flex-col items-center gap-2">
+					{state.error ? t("weather.offline") : t("weather.loading")}
+					<PlaceButton place={place} onClick={change} />
+				</span>
+			</Empty>
+		);
+	return <Forecast data={state.data} place={place} stale={state.error} onChangePlace={change} />;
 }
 
-function Forecast({ data, place, stale }: { data: WeatherData; place: WeatherPlace; stale: boolean }) {
+/** Search for another place right in the island. */
+function PlaceChooser({ onDone }: { onDone?: () => void }) {
+	const { choose, ...picker } = useWeatherPicker();
+	return (
+		<IslandPlacePicker
+			{...picker}
+			owner="weather.place"
+			className="h-full px-1 py-0.5"
+			onPick={(place) => {
+				choose(place);
+				onDone?.();
+			}}
+			onCancel={onDone}
+		/>
+	);
+}
+
+function PlaceButton({ place, onClick, light }: { place: WeatherPlace; onClick: () => void; light?: boolean }) {
+	const t = useT();
+	return (
+		<button
+			type="button"
+			title={t("weather.place.change")}
+			className={
+				light
+					? "-mx-1.5 flex min-w-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[12px] font-[650] text-white/85 transition-[background] hover:bg-white/15 hover:text-white"
+					: "flex min-w-0 items-center gap-1 rounded-full bg-white/8 px-2.5 py-1 text-[12px] font-[650] text-text-dim hover:bg-white/12 hover:text-text"
+			}
+			onClick={(e) => {
+				e.stopPropagation();
+				onClick();
+			}}
+		>
+			<MapPinIcon size={12} className="flex-none" />
+			<span className="truncate">{place.name}</span>
+			<ChevronDownIcon size={12} className="flex-none opacity-70" />
+		</button>
+	);
+}
+
+function Forecast({
+	data,
+	place,
+	stale,
+	onChangePlace,
+}: {
+	data: WeatherData;
+	place: WeatherPlace;
+	stale: boolean;
+	onChangePlace: () => void;
+}) {
 	const t = useT();
 	const locale = useLocale();
 	const sky = skyOf(data.code);
@@ -27,9 +90,8 @@ function Forecast({ data, place, stale }: { data: WeatherData; place: WeatherPla
 				className="relative flex w-48 flex-none flex-col justify-between overflow-hidden rounded-[20px] p-3.5 text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]"
 				style={{ background: skyGradient(sky, data.day) }}
 			>
-				<span className="flex min-w-0 items-center gap-1 text-[12px] font-[650] text-white/85">
-					<MapPinIcon size={12} className="flex-none" />
-					<span className="truncate">{place.name}</span>
+				<span className="flex min-w-0">
+					<PlaceButton place={place} onClick={onChangePlace} light />
 				</span>
 				<div className="flex items-end justify-between gap-2">
 					<strong className="text-[46px]/[0.95] font-[300] tracking-[-0.03em] tabular-nums">

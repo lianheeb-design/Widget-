@@ -70,7 +70,16 @@ export const tools = defineMock({
 			transit: (p) =>
 				(p as { kind: string }).kind === "stationboard"
 					? board()
-					: { stations: [{ id: "8506302", name: "St. Gallen" }] },
+					: {
+							stations: [
+								{ id: "8506302", name: "St. Gallen" },
+								{ id: "8589801", name: "St. Gallen, Marktplatz/Neumarkt" },
+								{ id: "8506121", name: "St. Gallen Haggen" },
+							],
+						},
+			alarm_start: () => null,
+			alarm_stop: () => null,
+			alarm_test: () => null,
 			pick_color: () => {
 				// Wander through a few colors, then "click" on the last one.
 				const steps = ["#2F86FF", "#3DDC84", "#FF4F7B", "#FFB340"];
