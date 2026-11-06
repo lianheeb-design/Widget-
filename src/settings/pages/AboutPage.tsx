@@ -1,11 +1,9 @@
 import { useEffect, useState } from "react";
-import { AppLogo, GitHubIcon } from "../../components/icons";
+import { AppLogo } from "../../components/icons";
 import { Button } from "../../components/ui/button";
 import { Card, Row } from "../../components/ui/card";
-import { command, isTauri } from "../../core/bridge";
+import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
-
-const REPO_URL = "https://github.com/HeyyCzer/windows-island";
 
 type UpdateStatus =
 	| { state: "idle" | "checking" | "latest" | "dev" | "portable" | "store" | "error" | "hidden" }
@@ -60,7 +58,6 @@ function UpdateRow() {
 
 export function AboutPage() {
 	const t = useT();
-	const openRepo = () => (isTauri ? command("open_repo") : window.open(REPO_URL, "_blank"));
 
 	return (
 		<>
@@ -72,12 +69,6 @@ export function AboutPage() {
 				</span>
 			</div>
 			<Card>
-				<Row label={t("settings.about.source")} desc={REPO_URL.replace("https://", "")}>
-					<Button onClick={openRepo}>
-						<GitHubIcon size={14} />
-						GitHub
-					</Button>
-				</Row>
 				<UpdateRow />
 				<Row label={t("settings.about.license")} desc="GNU GPL v3.0"></Row>
 			</Card>
