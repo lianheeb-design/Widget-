@@ -2,6 +2,23 @@ import { defineMock, provider } from "./kit";
 
 const picker = provider("picker", { picking: false, hex: null as string | null, seq: 0, picked: false });
 let pickTimer = 0;
+const desktop = provider("desktop", { browser: false, battery: 76 as number | null, charging: false });
+let dark = true;
+const at = (min: number) => Math.round(Date.now() / 1000) + min * 60;
+const board = () => ({
+	stationboard: [
+		{ stop: { departureTimestamp: at(2), delay: 0, platform: "3" }, category: "S", number: "1", to: "Wil SG" },
+		{ stop: { departureTimestamp: at(6), delay: 2, platform: "1" }, category: "IR", number: "13", to: "Zürich HB" },
+		{ stop: { departureTimestamp: at(9), delay: 0, platform: "D" }, category: "B", number: "1", to: "Winkeln" },
+		{ stop: { departureTimestamp: at(14), delay: 0, platform: "4" }, category: "S", number: "4", to: "Uznach" },
+		{
+			stop: { departureTimestamp: at(21), delay: 0, platform: "2" },
+			category: "IC",
+			number: "5",
+			to: "Genève-Aéroport",
+		},
+	],
+});
 
 /** The `tools` provider: control center, Git and ChatGPT. */
 let brightness: number | null = 70;
@@ -26,6 +43,12 @@ export const tools = defineMock({
 			set: (on) => (brightness = on ? 70 : null),
 		},
 		{ kind: "toggle", label: "OpenAI key saved", value: () => hasKey, set: (on) => (hasKey = on) },
+		{
+			kind: "toggle",
+			label: "Browser in front",
+			value: () => desktop.get().browser,
+			set: (on) => desktop.set((d) => ({ ...d, browser: on })),
+		},
 	],
 	actions: {
 		tools: {
@@ -38,6 +61,16 @@ export const tools = defineMock({
 			},
 			lock: () => null,
 			copy_text: () => null,
+			dark_mode: () => dark,
+			set_dark_mode: (p) => {
+				dark = (p as { on: boolean }).on;
+			},
+			open_target: () => null,
+			open_settings: () => null,
+			transit: (p) =>
+				(p as { kind: string }).kind === "stationboard"
+					? board()
+					: { stations: [{ id: "8506302", name: "St. Gallen" }] },
 			pick_color: () => {
 				// Wander through a few colors, then "click" on the last one.
 				const steps = ["#2F86FF", "#3DDC84", "#FF4F7B", "#FFB340"];

@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { Appearance } from "../../core/appearance";
 import { cn } from "../../core/cn";
 import { type IslandController, LAUNCHER } from "../../core/useIslandController";
-import { IdleClock } from "../IdleClock";
+import { IdleInfo } from "../IdleClock";
 import type { Variant } from "./geometry";
 import { Launcher } from "./Launcher";
 import { Tabs } from "./Tabs";
@@ -54,7 +54,7 @@ export function islandContent(ctl: IslandController, look: Appearance, v: Varian
 	}
 
 	if (windows && look.idleClock && (mode === "idle" || mode === "swallowed")) {
-		return { key: "clock", node: <IdleClock /> };
+		return { key: "clock", node: <IdleInfo /> };
 	}
 
 	return { key: "idle", node: null };

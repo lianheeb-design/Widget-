@@ -9,6 +9,11 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Modul „Timer“**: Schnellwahl (1, 5, 10, 15, 25, 45 Min.) oder eine eigene Minutenzahl. Die Restzeit läuft in der kleinen Insel mit. Am Ende öffnet sich die Insel mit einem kurzen Klang.
 - **Drei neue Randfarben** für den Stil „Windows Island“: Alpenglühen, Gletscher, Bergwald.
 - **Modul „Steuerung“**: grosse Regler für Helligkeit und Lautstärke, dazu Knöpfe zum Sperren des PCs und für Screenshots (Ausschnitt wie Win+Shift+S, ganzer Bildschirm wie Win+Druck, Screenshot-Ordner öffnen).
+- **Browsern Platz machen**: Ist ein Browser das aktive Fenster, wird die ruhende Insel zu einem schmalen Strich und verdeckt die Tabs nicht mehr. Dazu gibt es eine **Mini-Insel in Ruhe** und eine einstellbare **Verzögerung beim Öffnen** (*Einstellungen → Darstellung*).
+- **Insel anpassen** (*Einstellungen → Darstellung*): Grösse, Farbe, Deckkraft, Ecken und die **Ruhe-Anzeige** (Uhrzeit, Datum, Temperatur, Akku, nächster Termin).
+- **Schnellstart**: eigene Knöpfe für Programme, Dateien, Ordner und Webseiten.
+- **Countdown**, **Abfahrten** (Schweizer ÖV ab deiner Haltestelle), **Snake** und ein **Fokus-Modus** im Timer (Fokus und Pause im Wechsel, die Insel bleibt dabei ruhig).
+- **Dunkelmodus** per Knopf und **Nachtlicht**-Einstellungen in der Steuerung.
 - **Farbpipette** (in der Steuerung): Fahr mit der Maus über eine beliebige Stelle am Bildschirm, und die Insel zeigt dir live den Farbcode. Ein Klick kopiert ihn (z. B. `#3DDC84`), Esc oder Rechtsklick bricht ab. Die letzte Farbe bleibt als Kachel zum erneuten Kopieren.
 - **Modul „Notizen“**: eine Schnellnotiz und eine To-do-Liste zum Abhaken. Alles bleibt gespeichert, auch nach einem Neustart.
 - **Modul „Git“**: Status deines Repositorys sowie Add, Commit, Push, Pull und „Alles hochladen“ per Knopfdruck. Braucht *Git for Windows*.

@@ -86,7 +86,7 @@ export const controlsModule: IslandModule = {
 			icon: <SlidersHorizontalIcon size={15} color={ACCENT} />,
 			compact,
 			expanded: <ControlsPanel />,
-			expandedSize: { width: 560, height: 168 },
+			expandedSize: { width: 560, height: 182 },
 		};
 	},
 };

@@ -268,6 +268,7 @@
     mode: {
       timer: "Timer",
       stopwatch: "Stoppuhr",
+      focus: "Fokus",
     },
     stopwatch: {
       running: "Stoppuhr läuft",
@@ -295,6 +296,11 @@
     screenshot: "Bildschirm",
     screenshots: "Ordner",
     screenshotSaved: "Gespeichert in Bilder › Screenshots",
+    darkMode: "Dunkelmodus",
+    on: "an",
+    off: "aus",
+    nightLight: "Nachtlicht",
+    nightLightHint: "Öffnet die Nachtlicht-Einstellungen (Windows bietet Apps keinen Schalter dafür).",
     pipette: "Pipette",
     pipetteHint: "Klicken zum Kopieren · Esc bricht ab",
     pipetteCopied: "Kopiert",
@@ -458,6 +464,145 @@
     install: "Jetzt aktualisieren",
     installing: "Wird installiert…",
     none: "Du hast die neuste Version.",
+  },
+
+  extras: {
+    behavior: {
+      title: "Verhalten",
+      desc: "Damit die Insel nicht im Weg ist, zum Beispiel bei den Tabs im Browser.",
+    },
+    miniInBrowser: {
+      label: "Browsern Platz machen",
+      desc: "Solange Chrome, Edge, Firefox & Co. das aktive Fenster sind, schrumpft die ruhende Insel auf einen schmalen Strich. Benachrichtigungen erscheinen trotzdem.",
+    },
+    mini: {
+      label: "Mini-Insel in Ruhe",
+      desc: "Wenn nichts los ist, ist die Insel nur ein schmaler Strich. Mit der Maus darauf zeigen, um sie zu öffnen.",
+    },
+    delay: {
+      label: "Öffnen nach",
+      desc: "Wie lange die Maus auf der Insel bleiben muss, bis sie aufgeht.",
+      "0": "Sofort",
+      "1": "0,25 s",
+      "2": "0,45 s",
+      "3": "0,8 s",
+    },
+    customize: {
+      title: "Insel anpassen",
+      desc: "Grösse, Farbe, Ecken und was die ruhende Insel anzeigt.",
+    },
+    size: {
+      label: "Grösse",
+      small: "Klein",
+      medium: "Mittel",
+      large: "Gross",
+    },
+    color: {
+      label: "Farbe",
+      desc: "Eine auswählen oder mit dem Farbfeld jede beliebige Farbe.",
+    },
+    opacity: {
+      label: "Deckkraft",
+      desc: "Weniger lässt den Desktop durchscheinen.",
+    },
+    rounding: {
+      label: "Ecken",
+      desc: "0 % ist eckig, 100 % ganz rund.",
+    },
+    idle: {
+      label: "Ruhe-Anzeige",
+      desc: "Was die Insel zeigt, wenn nichts los ist.",
+      needsClock: "Braucht den Stil Windows Island mit eingeschalteter „Uhr in Ruhe“.",
+      clock: "Uhrzeit",
+      date: "Datum",
+      weather: "Temperatur",
+      battery: "Akku",
+      event: "Nächster Termin",
+    },
+  },
+
+  quick: {
+    title: "Schnellstart",
+    empty: "Noch keine Knöpfe. Füge in den Einstellungen Programme, Ordner oder Webseiten hinzu.",
+    openSettings: "Einstellungen öffnen",
+    notFound: "Diese Datei oder dieser Ordner existiert nicht mehr.",
+    failed: "Konnte nicht geöffnet werden.",
+    list: "Deine Knöpfe",
+    listDesc: "Erscheinen in dieser Reihenfolge in der Insel.",
+    add: "Neuer Knopf",
+    addDesc: "Ein Programm (.exe), eine Datei, ein Ordner oder eine Webadresse.",
+    name: "Name",
+    target: "Pfad oder https://…",
+    file: "Datei…",
+    folder: "Ordner…",
+    webHint: "Webseiten: die ganze Adresse mit https:// einfügen",
+    addButton: "Hinzufügen",
+    remove: "Entfernen",
+  },
+
+  countdown: {
+    title: "Countdown",
+    empty: "Noch keine Countdowns. Füge unten einen hinzu.",
+    namePlaceholder: "Was? (z. B. Ferien)",
+    date: "Datum",
+    add: "Hinzufügen",
+    remove: "Entfernen",
+    today: "Heute!",
+    tomorrow: "Morgen",
+    inDays: "in {n} Tagen",
+    ago: "vor {n} Tagen",
+    showBubble: {
+      label: "Tage-Blase",
+      desc: "Zeigt die Tage bis zum nächsten Datum neben der Insel.",
+    },
+  },
+
+  transit: {
+    title: "Abfahrten",
+    loading: "Abfahrten werden geladen…",
+    offline: "Fahrplan konnte nicht geladen werden.",
+    none: "Gerade keine Abfahrten.",
+    noStation: "Wähle in den Einstellungen eine Haltestelle.",
+    now: "jetzt",
+    platform: "Gl. {p}",
+    station: {
+      label: "Haltestelle",
+      desc: "Jede Haltestelle oder jeder Bahnhof in der Schweiz. Fahrplan von transport.opendata.ch.",
+      placeholder: "Haltestelle oder Bahnhof",
+      search: "Suchen",
+      notFound: "Keine Haltestelle mit diesem Namen gefunden.",
+    },
+  },
+
+  snake: {
+    title: "Snake",
+    start: "Klicken zum Spielen",
+    paused: "Pause",
+    over: "Vorbei: {n} Punkte",
+    hint: "Pfeiltasten oder WASD · Leertaste pausiert · Esc verlässt",
+    score: "Punkte: {n}",
+    best: "Bestwert: {n}",
+  },
+
+  focus: {
+    start: "Fokus starten",
+    skip: "Zum nächsten Block springen",
+    plan: "{work} Min. Fokus, {rest} Min. Pause, im Wechsel",
+    rounds: "Runde {n}",
+    work: {
+      label: "Fokus-Dauer",
+      desc: "Ein Fokus-Block, dann eine Pause, dann wieder Fokus.",
+      now: "Fokus",
+    },
+    break: {
+      label: "Pausen-Dauer",
+      now: "Pause",
+    },
+    quiet: {
+      label: "Ruhe während Fokus",
+      desc: "Die Insel springt für Benachrichtigungen nicht auf, solange ein Fokus-Block läuft.",
+      on: "stumm",
+    },
   },
 
   agents: {

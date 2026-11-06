@@ -1,4 +1,4 @@
-import { TimerIcon, TimerResetIcon } from "lucide-react";
+import { BrainIcon, CoffeeIcon, TimerIcon, TimerResetIcon } from "lucide-react";
 /**
  * Timer: a countdown started from quick picks or any number of minutes. It
  * owns the compact island while it runs, and pops the island open with a
@@ -11,6 +11,7 @@ import type { IslandModule, ModuleView } from "../../core/types";
 import { playChime, primeChime } from "./chime";
 import { TimerRemaining } from "./components/TimerCompact";
 import { TimerPanel } from "./components/TimerPanel";
+import { FocusPanel, FocusRemaining, FocusSettings, focusSettings, useFocus } from "./focus";
 import { timerMode } from "./mode";
 import { TIMER_ACCENT, timerLastMinutes, timerSettings } from "./settings";
 import { StopwatchPanel, StopwatchRemaining, useStopwatch } from "./stopwatch";
@@ -87,7 +88,8 @@ export const timerModule: IslandModule = {
 	id: "timer",
 	title: "timer.title",
 	settingsIcon: <TimerIcon size={15} />,
-	settings: Object.values(timerSettings),
+	settings: [...Object.values(timerSettings), ...Object.values(focusSettings)],
+	SettingsSection: FocusSettings,
 	useView(): ModuleView {
 		const t = useT();
 		const sound = useSetting(timerSettings.sound);
@@ -101,6 +103,9 @@ export const timerModule: IslandModule = {
 		const watchTouched = watchRunning || watch.before > 0;
 		const timerShown = busy || timer.due;
 		const showStopwatch = !timerShown && mode === "stopwatch";
+		const focus = useFocus(sound);
+		const focusOn = focus.state.phase !== "idle";
+		const showFocus = !timerShown && mode === "focus";
 
 		const timerCompact = {
 			left: (
@@ -129,14 +134,31 @@ export const timerModule: IslandModule = {
 			width: 230,
 		};
 
+		const focusCompact = {
+			left: (
+				<span className="flex items-center gap-2 text-[13px] font-[650]">
+					{focus.state.phase === "break" ? (
+						<CoffeeIcon size={15} color="#64D2FF" />
+					) : (
+						<BrainIcon size={15} color={TIMER_ACCENT} />
+					)}
+					{focus.state.phase === "break" ? t("focus.break.now") : t("focus.work.now")}
+				</span>
+			),
+			right: <FocusRemaining state={focus.state} />,
+			width: 230,
+		};
+
 		return {
-			active: timerShown || watchTouched,
+			active: timerShown || watchTouched || focusOn,
 			// A finished timer beats everything; a running one beats the music.
-			priority: timer.due ? 95 : timer.deadline ? 52 : watchRunning ? 50 : 20,
+			priority: timer.due ? 95 : timer.deadline ? 52 : focusOn && focus.state.deadline ? 51 : watchRunning ? 50 : 20,
 			accent: TIMER_ACCENT,
 			icon: <TimerIcon size={15} color={TIMER_ACCENT} />,
-			compact: timerShown ? timerCompact : watchTouched ? stopwatchCompact : undefined,
-			expanded: showStopwatch ? (
+			compact: timerShown ? timerCompact : focusOn ? focusCompact : watchTouched ? stopwatchCompact : undefined,
+			expanded: showFocus ? (
+				<FocusPanel focus={focus} />
+			) : showStopwatch ? (
 				<StopwatchPanel stopwatch={stopwatch} />
 			) : (
 				<TimerPanel
@@ -154,7 +176,11 @@ export const timerModule: IslandModule = {
 				/>
 			),
 			expandedSize: { width: 560, height: 128 },
-			activityKey: timer.due ? `due:${timer.finishedAt}` : undefined,
+			activityKey: timer.due
+				? `due:${timer.finishedAt}`
+				: focus.state.switches
+					? `focus:${focus.state.switches}`
+					: undefined,
 			attention: timer.due,
 			forceExpanded: timer.due,
 		};

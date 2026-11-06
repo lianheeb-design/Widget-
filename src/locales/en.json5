@@ -291,6 +291,7 @@
     mode: {
       timer: "Timer",
       stopwatch: "Stopwatch",
+      focus: "Focus",
     },
     stopwatch: {
       running: "Stopwatch running",
@@ -318,6 +319,11 @@
     screenshot: "Screen",
     screenshots: "Folder",
     screenshotSaved: "Saved to Pictures › Screenshots",
+    darkMode: "Dark mode",
+    on: "on",
+    off: "off",
+    nightLight: "Night light",
+    nightLightHint: "Opens the night light settings (Windows has no switch for apps).",
     pipette: "Picker",
     pipetteHint: "Click to copy · Esc cancels",
     pipetteCopied: "Copied",
@@ -481,6 +487,145 @@
     install: "Update now",
     installing: "Installing…",
     none: "You have the latest version.",
+  },
+
+  extras: {
+    behavior: {
+      title: "Behavior",
+      desc: "So the island doesn't get in the way, for example of the tabs in your browser.",
+    },
+    miniInBrowser: {
+      label: "Make room for browsers",
+      desc: "While Chrome, Edge, Firefox & co. are the active window, the resting island shrinks to a thin line. Notifications still show.",
+    },
+    mini: {
+      label: "Mini island at rest",
+      desc: "When nothing is going on, the island is just a thin line. Point at it to open it.",
+    },
+    delay: {
+      label: "Open after",
+      desc: "How long the pointer has to stay on the island before it opens.",
+      "0": "At once",
+      "1": "0.25 s",
+      "2": "0.45 s",
+      "3": "0.8 s",
+    },
+    customize: {
+      title: "Customize the island",
+      desc: "Size, color, corners and what the resting pill shows.",
+    },
+    size: {
+      label: "Size",
+      small: "Small",
+      medium: "Medium",
+      large: "Large",
+    },
+    color: {
+      label: "Color",
+      desc: "Pick one or choose any color with the color field.",
+    },
+    opacity: {
+      label: "Opacity",
+      desc: "Lower lets the desktop show through.",
+    },
+    rounding: {
+      label: "Corners",
+      desc: "0% is square, 100% fully round.",
+    },
+    idle: {
+      label: "Resting pill",
+      desc: "What the island shows when nothing is going on.",
+      needsClock: "Needs the Windows Island style with “Clock at rest” on.",
+      clock: "Time",
+      date: "Date",
+      weather: "Temperature",
+      battery: "Battery",
+      event: "Next event",
+    },
+  },
+
+  quick: {
+    title: "Quick launch",
+    empty: "No buttons yet. Add programs, folders or websites in the settings.",
+    openSettings: "Open settings",
+    notFound: "That file or folder doesn't exist anymore.",
+    failed: "Couldn't open it.",
+    list: "Your buttons",
+    listDesc: "Shown in the island in this order.",
+    add: "New button",
+    addDesc: "A program (.exe), a file, a folder or a web address.",
+    name: "Name",
+    target: "Path or https://…",
+    file: "File…",
+    folder: "Folder…",
+    webHint: "Websites: paste the full address starting with https://",
+    addButton: "Add",
+    remove: "Remove",
+  },
+
+  countdown: {
+    title: "Countdown",
+    empty: "No countdowns yet. Add one below.",
+    namePlaceholder: "What? (e.g. Holidays)",
+    date: "Date",
+    add: "Add",
+    remove: "Remove",
+    today: "Today!",
+    tomorrow: "Tomorrow",
+    inDays: "in {n} days",
+    ago: "{n} days ago",
+    showBubble: {
+      label: "Days bubble",
+      desc: "Shows the days until the next date beside the island.",
+    },
+  },
+
+  transit: {
+    title: "Departures",
+    loading: "Loading departures…",
+    offline: "Couldn't load the timetable.",
+    none: "No departures right now.",
+    noStation: "Choose a stop in the settings.",
+    now: "now",
+    platform: "Pl. {p}",
+    station: {
+      label: "Stop",
+      desc: "Any Swiss stop or station. Timetable by transport.opendata.ch.",
+      placeholder: "Stop or station",
+      search: "Search",
+      notFound: "No stop found with that name.",
+    },
+  },
+
+  snake: {
+    title: "Snake",
+    start: "Click to play",
+    paused: "Paused",
+    over: "Game over: {n} points",
+    hint: "Arrow keys or WASD · Space pauses · Esc leaves",
+    score: "Points: {n}",
+    best: "Best: {n}",
+  },
+
+  focus: {
+    start: "Start focus",
+    skip: "Skip to the next block",
+    plan: "{work} min focus, {rest} min break, in turns",
+    rounds: "Round {n}",
+    work: {
+      label: "Focus length",
+      desc: "One focus block, then a break, then focus again.",
+      now: "Focus",
+    },
+    break: {
+      label: "Break length",
+      now: "Break",
+    },
+    quiet: {
+      label: "Quiet during focus",
+      desc: "The island doesn't pop open for notifications while a focus block runs.",
+      on: "quiet",
+    },
   },
 
   agents: {

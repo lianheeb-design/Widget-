@@ -12,6 +12,8 @@ const RESIZE_OUT_DELAY = 1200;
 interface Options {
 	/** Entering expands the island; when off, only a click does. */
 	expandOnHover: boolean;
+	/** How long the pointer has to stay before the island opens (ms). */
+	openDelay?: number;
 	onOpen: () => void;
 	onClose: () => void;
 }
@@ -25,12 +27,12 @@ interface Options {
  * keep it open wherever the pointer goes; the pointer's last state applies
  * once every reason to stay open has ended.
  */
-export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
+export function useIslandHover({ expandOnHover, openDelay = HOVER_IN_DELAY, onOpen, onClose }: Options) {
 	const [open, setOpen] = useState(false);
 	const openRef = useRef(false);
 	const timer = useRef<number | undefined>(undefined);
-	const latest = useRef({ expandOnHover, onOpen, onClose });
-	latest.current = { expandOnHover, onOpen, onClose };
+	const latest = useRef({ expandOnHover, openDelay, onOpen, onClose });
+	latest.current = { expandOnHover, openDelay, onOpen, onClose };
 
 	const pointerInside = useRef(false);
 	const locked = useRef(false);
@@ -51,7 +53,7 @@ export function useIslandHover({ expandOnHover, onOpen, onClose }: Options) {
 		};
 		if (immediate) return apply();
 		const justResized = Date.now() - resizedAt.current < RESIZE_GRACE_MS;
-		const delay = inside ? HOVER_IN_DELAY : justResized ? RESIZE_OUT_DELAY : HOVER_OUT_DELAY;
+		const delay = inside ? latest.current.openDelay : justResized ? RESIZE_OUT_DELAY : HOVER_OUT_DELAY;
 		timer.current = window.setTimeout(apply, delay);
 	}, []);
 

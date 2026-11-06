@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
+import { openDelay } from "./extras";
 import {
 	generalSettings,
 	ISLAND_HIDDEN_KEY,
@@ -42,6 +43,7 @@ export function useIslandController(modules: IslandModule[]) {
 	const { peekId, peek, endPeek } = usePeek(entries);
 	const hover = useIslandHover({
 		expandOnHover: readSetting(settings, generalSettings.expandOnHover),
+		openDelay: readSetting(settings, openDelay),
 		onOpen: tabMemory.onIslandOpen,
 		onClose: tabMemory.onIslandClose,
 	});

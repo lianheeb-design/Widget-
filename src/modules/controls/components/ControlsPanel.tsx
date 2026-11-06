@@ -2,6 +2,8 @@ import {
 	CameraIcon,
 	FolderOpenIcon,
 	LockIcon,
+	MoonIcon,
+	MoonStarIcon,
 	PipetteIcon,
 	ScissorsIcon,
 	SunIcon,
@@ -22,6 +24,8 @@ interface ControlsState {
 }
 
 const POLL_MS = 4000;
+const pill =
+	"flex h-7.5 items-center gap-1.5 whitespace-nowrap rounded-full bg-white/8 px-3 text-[12px] font-bold text-text-dim transition-[background] hover:bg-white/12 hover:text-text";
 /** Brightness goes through DDC/CI or PowerShell: slow, so not on every pixel. */
 const BRIGHTNESS_THROTTLE = 350;
 
@@ -75,6 +79,21 @@ export function ControlsPanel() {
 			.catch(() => flash(t("controls.failed")));
 	};
 
+	const [dark, setDark] = useState<boolean | null>(null);
+	useEffect(() => {
+		tools<boolean>("dark_mode")
+			.then((v) => setDark(!!v))
+			.catch(() => setDark(null));
+	}, []);
+	const toggleDark = () => {
+		const next = !dark;
+		setDark(next);
+		tools("set_dark_mode", { on: next }).catch(() => {
+			setDark(!next);
+			flash(t("controls.failed"));
+		});
+	};
+
 	const colors = useSetting(recentColors);
 	const lastColor = colors[0];
 
@@ -93,7 +112,7 @@ export function ControlsPanel() {
 
 	return (
 		<div className="flex h-full gap-3 px-1.5 py-1" onClick={(e) => e.stopPropagation()}>
-			<div className="flex min-w-0 flex-1 flex-col justify-center gap-2.5">
+			<div className="flex min-w-0 flex-1 flex-col justify-center gap-2">
 				<BigSlider
 					label={t("controls.brightness")}
 					value={state?.brightness ?? 0}
@@ -116,6 +135,32 @@ export function ControlsPanel() {
 						setVolume(volume?.muted && level > 0 ? { level: level / 100, muted: false } : { level: level / 100 })
 					}
 				/>
+				<div className="flex gap-2">
+					<button
+						type="button"
+						className={pill}
+						aria-pressed={!!dark}
+						style={dark ? { background: "rgba(94,92,230,0.35)", color: "#fff" } : undefined}
+						onClick={toggleDark}
+					>
+						<MoonIcon size={13} />
+						{t("controls.darkMode")}
+						<span className="text-[11px] opacity-70">
+							{dark === null ? "" : dark ? t("controls.on") : t("controls.off")}
+						</span>
+					</button>
+					<button
+						type="button"
+						className={pill}
+						title={t("controls.nightLightHint")}
+						onClick={() =>
+							tools("open_settings", { uri: "ms-settings:nightlight" }).catch(() => flash(t("controls.failed")))
+						}
+					>
+						<MoonStarIcon size={13} />
+						{t("controls.nightLight")}
+					</button>
+				</div>
 				<span className="h-3.5 truncate px-1 text-[11.5px] font-[650] text-text-dim" aria-live="polite">
 					{note}
 				</span>

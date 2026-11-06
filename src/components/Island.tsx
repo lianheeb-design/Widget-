@@ -1,8 +1,9 @@
 import { motion } from "motion/react";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
+import { islandFill, SIZE_SCALE, useDesktop, useExtras } from "../core/extras";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
 import { useHitRects } from "../core/useHitRects";
@@ -13,7 +14,7 @@ import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
 import { islandContent } from "./island/content";
-import { ambientWidth, BUBBLE, BUBBLE_GAP, geometry, variantOf } from "./island/geometry";
+import { ambientWidth, BUBBLE, BUBBLE_GAP, type Geo, geometry, variantOf } from "./island/geometry";
 import { launcherSize } from "./island/Launcher";
 import { Rim } from "./island/Rim";
 import { Surface } from "./island/Surface";
@@ -29,13 +30,35 @@ export function Island() {
 	useSyncLocale();
 	useIslandFileDrop(ctl);
 
+	const extras = useExtras();
+	const desktop = useDesktop();
+
 	const bigSize = ctl.launcher ? launcherSize(ctl.entries.length) : focused?.view.expandedSize;
-	const g = geometry(v, look, mode, bigSize, primary);
 	const big = mode === "expanded" || mode === "peek";
 	const hidden = mode === "hidden";
 	const swallowed = mode === "swallowed";
-	const resting = mode === "compact" || mode === "idle";
-	const showSecondary = mode === "compact" && secondary !== undefined;
+	const restingMode = mode === "compact" || mode === "idle";
+	// A thin bar instead of the resting island: always, or while a browser is
+	// the active window, so it doesn't sit on top of the browser's tabs.
+	const mini = restingMode && ((mode === "idle" && extras.mini) || (extras.miniInBrowser && !!desktop?.browser));
+	const resting = restingMode && !mini;
+	const showSecondary = resting && mode === "compact" && secondary !== undefined;
+	const idleSlots = windows && look.idleClock ? extras.idle.reduce((n, item) => n + (item === "event" ? 2 : 1), 0) : 0;
+	const base: Geo = mini
+		? windows
+			? { width: 74, height: 9, radius: 4.5, ear: 0 }
+			: { width: 92, height: 5, radius: 4, ear: 4 }
+		: geometry(v, look, mode, bigSize, primary);
+	const widened =
+		!mini && mode === "idle" && idleSlots > 1 ? { ...base, width: base.width + (idleSlots - 1) * 62 } : base;
+	const roundness = Math.min(100, Math.max(0, extras.rounding)) / 100;
+	const g: Geo = { ...widened, radius: widened.radius * roundness, ear: widened.ear * Math.max(roundness, 0.35) };
+	const scale = SIZE_SCALE[extras.size] ?? 1;
+
+	// The island's fill: a CSS variable the body, the ears and the bubbles share.
+	useEffect(() => {
+		document.documentElement.style.setProperty("--island", islandFill(extras.color, extras.opacity));
+	}, [extras.color, extras.opacity]);
 	const transition = big ? v.expandSpring : v.shellSpring;
 
 	const drag = useIslandDrag({
@@ -55,7 +78,7 @@ export function Island() {
 		[mode, ctl.tab, ctl.expand, ctl.collapse, ctl.keepOpen],
 	);
 
-	const content = islandContent(ctl, look, v);
+	const content = mini ? { key: "mini", node: null } : islandContent(ctl, look, v);
 	const rim = windows ? <Rim look={look} /> : null;
 	const bubble = { transition: v.shellSpring, rim, onOpen: ctl.expand };
 
@@ -64,9 +87,9 @@ export function Island() {
 			<div className="pointer-events-none fixed inset-0 flex items-start justify-center">
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div
-					className="pointer-events-none relative flex origin-center justify-center"
+					className="pointer-events-none relative flex origin-top justify-center"
 					initial={false}
-					animate={swallowed ? { scale: 0, rotate: -200, opacity: 0 } : { scale: 1, rotate: 0, opacity: 1 }}
+					animate={swallowed ? { scale: 0, rotate: -200, opacity: 0 } : { scale, rotate: 0, opacity: 1 }}
 					transition={
 						swallowed
 							? { duration: 0.46, ease: [0.55, 0, 1, 0.45] }

@@ -6,6 +6,7 @@ import { chatgptModule } from "./chatgpt";
 import { clipboardModule } from "./clipboard";
 import { clockModule } from "./clock";
 import { controlsModule } from "./controls";
+import { countdownModule } from "./countdown";
 import { findModule } from "./find";
 import { gitModule } from "./git";
 import { githubModule } from "./github";
@@ -14,9 +15,12 @@ import { monitorModule } from "./monitor";
 import { musicModule } from "./music";
 import { notesModule } from "./notes";
 import { notificationsModule } from "./notifications";
+import { quickLaunchModule } from "./quicklaunch";
 import { reactionModule } from "./reaction";
 import { shelfModule } from "./shelf";
+import { snakeModule } from "./snake";
 import { timerModule } from "./timer";
+import { transitModule } from "./transit";
 import { updateModule } from "./update";
 import { weatherModule } from "./weather";
 
@@ -40,10 +44,14 @@ export const modules: IslandModule[] = [
 	timerModule,
 	weatherModule,
 	controlsModule,
+	quickLaunchModule,
 	notesModule,
+	countdownModule,
+	transitModule,
 	chatgptModule,
 	gitModule,
 	reactionModule,
+	snakeModule,
 	updateModule,
 	githubModule,
 	hydrationModule,

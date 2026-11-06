@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { focusQuiet, QUIET_ALLOWED } from "./extras";
 import type { ModuleEntry } from "./types";
 
 const PEEK_DURATION = 3800;
@@ -32,7 +33,8 @@ export function usePeek(entries: ModuleEntry[]) {
 			const seen = lastKeys.current.has(module.id);
 			const prev = lastKeys.current.get(module.id);
 			lastKeys.current.set(module.id, view.activityKey);
-			if (seen && view.activityKey && view.activityKey !== prev) peek(module.id);
+			if (seen && view.activityKey && view.activityKey !== prev && (!focusQuiet.get() || QUIET_ALLOWED.has(module.id)))
+				peek(module.id);
 		}
 	}, [keySignature]);
 

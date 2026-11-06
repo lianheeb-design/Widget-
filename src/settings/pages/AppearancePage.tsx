@@ -11,6 +11,18 @@ import {
 	THICKNESSES,
 } from "../../core/appearance";
 import { cn } from "../../core/cn";
+import {
+	extraSettings,
+	IDLE_ITEMS,
+	type IslandSize,
+	idleItems,
+	islandColor,
+	islandOpacity,
+	islandRounding,
+	islandSize,
+	OPEN_DELAYS,
+	openDelay,
+} from "../../core/extras";
 import { useT } from "../../core/i18n";
 import { appearanceSettings, ISLAND_HIDDEN_KEY, type IslandStyle, readSetting, setSetting } from "../../core/settings";
 import { Title } from "../components/Heading";
@@ -150,6 +162,8 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 				</Row>
 			</motion.section>
 
+			<CustomizeCard values={values} windows={windows} />
+
 			<Card>
 				<Row as="label" label={t("appearance.hide.label")} desc={t("appearance.hide.desc")}>
 					<Toggle checked={hidden} onChange={(v) => setSetting(ISLAND_HIDDEN_KEY, v)} />
@@ -218,5 +232,140 @@ function Swatch({
 				{edit && "✎"}
 			</span>
 		</button>
+	);
+}
+
+const ISLAND_COLORS = ["#000000", "#1C1C1E", "#0B1A33", "#1A0B2E", "#06261F", "#331014", "#2A2116"];
+const range =
+	"h-1.5 w-44 cursor-pointer appearance-none rounded-full bg-white/12 accent-[var(--accent)] [&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white";
+
+/** This fork's extra choices: behavior near browser tabs, size, color, corners, resting pill. */
+function CustomizeCard({ values, windows }: { values: Record<string, unknown>; windows: boolean }) {
+	const t = useT();
+	const color = readSetting(values, islandColor);
+	const opacity = readSetting(values, islandOpacity);
+	const rounding = readSetting(values, islandRounding);
+	const items = readSetting(values, idleItems);
+	const idleClock = readSetting(values, appearanceSettings.idleClock);
+	return (
+		<>
+			<Card>
+				<Block>
+					<Row label={t("extras.behavior.title")} desc={t("extras.behavior.desc")} />
+				</Block>
+				<ToggleRow def={extraSettings.miniInBrowser} value={readSetting(values, extraSettings.miniInBrowser)} />
+				<ToggleRow def={extraSettings.mini} value={readSetting(values, extraSettings.mini)} />
+				<Row label={t("extras.delay.label")} desc={t("extras.delay.desc")}>
+					<Segmented
+						options={OPEN_DELAYS.map((ms, i) => ({ value: ms, label: t(`extras.delay.${i}` as "extras.delay.0") }))}
+						value={readSetting(values, openDelay)}
+						onChange={(ms) => setSetting(openDelay, ms)}
+					/>
+				</Row>
+			</Card>
+
+			<Card>
+				<Block>
+					<Row label={t("extras.customize.title")} desc={t("extras.customize.desc")} />
+				</Block>
+				<Row label={t("extras.size.label")}>
+					<Segmented<IslandSize>
+						options={(["small", "medium", "large"] as const).map((size) => ({
+							value: size,
+							label: t(`extras.size.${size}`),
+						}))}
+						value={readSetting(values, islandSize)}
+						onChange={(size) => setSetting(islandSize, size)}
+					/>
+				</Row>
+				<Block>
+					<Row label={t("extras.color.label")} desc={t("extras.color.desc")}>
+						<input
+							type="color"
+							className="size-7 cursor-pointer rounded-md border-0 bg-transparent p-0"
+							value={color}
+							aria-label={t("extras.color.label")}
+							onChange={(e) => setSetting(islandColor, e.target.value)}
+						/>
+					</Row>
+					<div className="flex flex-wrap gap-1.5">
+						{ISLAND_COLORS.map((c) => (
+							<button
+								type="button"
+								key={c}
+								title={c}
+								className={cn(
+									"size-7 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] transition-transform hover:scale-108",
+									color.toLowerCase() === c.toLowerCase() && "shadow-[0_0_0_2px_var(--accent)]",
+								)}
+								style={{ background: c }}
+								onClick={() => setSetting(islandColor, c)}
+							/>
+						))}
+					</div>
+				</Block>
+				<Row label={t("extras.opacity.label")} desc={t("extras.opacity.desc")}>
+					<span className="flex items-center gap-2.5">
+						<input
+							type="range"
+							min={40}
+							max={100}
+							step={5}
+							className={range}
+							value={opacity}
+							aria-label={t("extras.opacity.label")}
+							onChange={(e) => setSetting(islandOpacity, Number(e.target.value))}
+						/>
+						<span className="w-9 text-right text-[12.5px] text-text-dim tabular-nums">{opacity}%</span>
+					</span>
+				</Row>
+				<Row label={t("extras.rounding.label")} desc={t("extras.rounding.desc")}>
+					<span className="flex items-center gap-2.5">
+						<input
+							type="range"
+							min={0}
+							max={100}
+							step={5}
+							className={range}
+							value={rounding}
+							aria-label={t("extras.rounding.label")}
+							onChange={(e) => setSetting(islandRounding, Number(e.target.value))}
+						/>
+						<span className="w-9 text-right text-[12.5px] text-text-dim tabular-nums">{rounding}%</span>
+					</span>
+				</Row>
+				<Block>
+					<Row
+						label={t("extras.idle.label")}
+						desc={windows && idleClock ? t("extras.idle.desc") : t("extras.idle.needsClock")}
+						disabled={!windows || !idleClock}
+					/>
+					<div className={cn("flex flex-wrap gap-1.5", (!windows || !idleClock) && "pointer-events-none opacity-40")}>
+						{IDLE_ITEMS.map((item) => {
+							const on = items.includes(item);
+							return (
+								<button
+									type="button"
+									key={item}
+									className={cn(
+										"rounded-full px-3 py-1 text-[12.5px] font-[650] shadow-[inset_0_0_0_1px_var(--hairline)] transition-[background,color]",
+										on ? "bg-[var(--accent)] text-white shadow-none" : "text-text-dim hover:bg-white/6",
+									)}
+									aria-pressed={on}
+									onClick={() =>
+										setSetting(
+											idleItems,
+											on ? items.filter((x) => x !== item) : IDLE_ITEMS.filter((x) => x === item || items.includes(x)),
+										)
+									}
+								>
+									{t(`extras.idle.${item}`)}
+								</button>
+							);
+						})}
+					</div>
+				</Block>
+			</Card>
+		</>
 	);
 }

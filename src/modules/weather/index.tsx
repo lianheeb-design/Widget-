@@ -4,6 +4,8 @@ import { CloudSunIcon } from "lucide-react";
  * from Open-Meteo. It never takes over the compact island; an optional side
  * bubble shows the temperature.
  */
+import { useEffect } from "react";
+import { currentTemperature } from "../../core/extras";
 import { moduleEnabled, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { SkyIcon, skyColor, skyOf } from "./codes";
@@ -26,6 +28,8 @@ export const weatherModule: IslandModule = {
 		const showBubble = useSetting(weatherSettings.showBubble);
 		const state = useWeather(place, unit, enabled);
 		const data = state.data;
+		const temperature = data?.temperature ?? null;
+		useEffect(() => currentTemperature.set(temperature), [temperature]);
 		const sky = data ? skyOf(data.code) : null;
 
 		return {

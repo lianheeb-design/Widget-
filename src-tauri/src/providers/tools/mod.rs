@@ -5,6 +5,7 @@
 //! - `git`: status, add, commit, push and pull of local repositories;
 //! - `openai`: a ChatGPT chat with the person's own OpenAI API key.
 
+mod desktop;
 mod git;
 mod openai;
 mod picker;
@@ -34,6 +35,7 @@ impl Provider for ToolsProvider {
     }
 
     fn start(self: Arc<Self>, hub: Arc<Hub>) {
+        desktop::start(hub.clone());
         let _ = self.hub.set(hub);
     }
 
@@ -54,6 +56,9 @@ impl Provider for ToolsProvider {
             let hub = self.hub.get().cloned().ok_or("not started")?;
             picker::start(hub)?;
             return Ok(Value::Null);
+        }
+        if let Some(result) = desktop::action(action, &payload) {
+            return result;
         }
         system::action(action, &payload)
     }
