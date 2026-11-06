@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* Design tokens as Tailwind colors. `inline` keeps them pointing at the vars, so a
+   local override (e.g. the music panel's `--accent`) still flows into utilities. */
+@theme inline {
+	--color-island: var(--island);
+	--color-text: var(--text);
+	--color-text-dim: var(--text-dim);
+	--color-text-faint: var(--text-faint);
+	--color-hairline: var(--hairline);
+	--color-card: var(--card);
+	--color-accent: var(--accent);
+	--color-danger: #ff6b63;
+	--color-ok: #34c759;
+	--color-warn: #ffbd2e;
+	--animate-hydration-pulse: hydration-pulse 1.5s ease-in-out infinite;
+	--animate-gh-pulse: gh-pulse 1.6s ease-in-out infinite;
+	--animate-spin-fast: spin 0.9s linear infinite;
+	--animate-marquee: marquee var(--marquee-duration) ease-in-out infinite alternate;
+	--animate-rim-spin: rim-spin 7s linear infinite;
+	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
+}
+
+/* Text that doesn't fit slides to its end and back (see `Marquee`). */
+@keyframes marquee {
+	0%,
+	18% {
+		transform: translateX(0);
+	}
+	82%,
+	100% {
+		transform: translateX(calc(var(--marquee-distance) - 24px));
+	}
+}
+
+/* The Windows Island rim's gradient turns around the island. */
+@property --rim-angle {
+	syntax: "<angle>";
+	inherits: false;
+	initial-value: 0deg;
+}
+@keyframes rim-spin {
+	to {
+		--rim-angle: 360deg;
+	}
+}
+
+@keyframes gh-pulse {
+	50% {
+		box-shadow:
+			0 0 0 2px var(--island),
+			0 0 0 5px rgba(210, 153, 34, 0.35);
+	}
+}
+
+@keyframes hydration-pulse {
+	50% {
+		box-shadow: 0 0 0 5px rgba(69, 196, 230, 0.16);
+	}
+}
+
+:root {
+	--island: #000;
+	--text: #f5f5f7;
+	--text-dim: rgba(245, 245, 247, 0.56);
+	--text-faint: rgba(245, 245, 247, 0.32);
+	--hairline: rgba(255, 255, 255, 0.07);
+	--card: rgba(255, 255, 255, 0.055);
+	--accent: #a0a4ff;
+	font-family: "Inter", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+	font-feature-settings:
+		"tnum" 1,
+		"cv11" 1;
+	color: var(--text);
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Resets live in `base`, so component and utility classes override them. */
+@layer base {
+	* {
+		box-sizing: border-box;
+	}
+
+	/* Preflight sets 1.5; the UI was drawn with the browser's `normal`. */
+	html {
+		line-height: normal;
+	}
+
+	html,
+	body,
+	#root {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+		background: transparent;
+		overflow: hidden;
+		user-select: none;
+		cursor: default;
+	}
+
+	button {
+		font: inherit;
+		color: inherit;
+		background: none;
+		border: 0;
+		padding: 0;
+		cursor: pointer;
+	}
+}
+
+/* The PiP and settings windows are opaque. */
+html:has([data-pip]),
+body:has([data-pip]) {
+	background: #000;
+}
+html:has([data-settings]),
+body:has([data-settings]) {
+	background: #0c0c10;
+}
+
+/* Browser preview wallpaper (never applied inside Tauri). */
+body.preview {
+	background: radial-gradient(120% 90% at 80% 100%, #3b3a6b 0%, #16162a 55%, #0d0d17 100%);
+}

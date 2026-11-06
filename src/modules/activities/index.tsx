@@ -1,0 +1,97 @@
+import { RefreshCwIcon } from "lucide-react";
+/**
+ * Live activities — alerts and ongoing activities from the local HTTP API,
+ * plus the system's own (volume, battery, Bluetooth headphones) and alerts
+ * other modules raise (a Windows notification arriving, Claude answering).
+ * Backend: `src-tauri/src/providers/activities/`.
+ *
+ * An alert (with an expiry) takes over the compact island until it runs out;
+ * ongoing activities stay until removed and are listed in the panel.
+ */
+import { Badge } from "../../components/Glyph";
+import { Empty } from "../../components/ui/text";
+import { useProvider } from "../../core/bridge";
+import { useT } from "../../core/i18n";
+import { moduleEnabled, readSetting, useSettings } from "../../core/settings";
+import type { IslandModule, ModuleView } from "../../core/types";
+import { ActivityCard } from "./components/ActivityCard";
+import { ActivityCompactLeft, ActivityCompactRight } from "./components/ActivityCompact";
+import { ApiSettings } from "./components/ApiSettings";
+import { activitySettings, SOURCE_SETTING } from "./settings";
+import { ACTIVITIES_PROVIDER, type ActivitiesState, type Activity } from "./types";
+
+const ROW = 58;
+const MAX_ROWS = 4;
+
+/** Sources owned by other modules: shown only while that module is on. */
+const MODULE_SOURCES: Record<string, string> = {
+	notification: "notifications",
+	ask: "ask",
+	monitor: "monitor",
+};
+
+export const activitiesModule: IslandModule = {
+	id: "activities",
+	title: "activities.title",
+	settingsIcon: <RefreshCwIcon size={14} />,
+	settings: Object.values(activitySettings),
+	SettingsSection: ApiSettings,
+	useHiddenSettings() {
+		const state = useProvider<ActivitiesState>(ACTIVITIES_PROVIDER);
+		return state?.hasBattery === false ? [activitySettings.battery.key] : [];
+	},
+	useView(): ModuleView {
+		const state = useProvider<ActivitiesState>(ACTIVITIES_PROVIDER);
+		const settings = useSettings();
+
+		const shown = (a: Activity) => {
+			const owner = MODULE_SOURCES[a.source];
+			if (owner) return readSetting(settings, moduleEnabled({ id: owner, title: "activities.title" }));
+			return readSetting(settings, SOURCE_SETTING[a.source] ?? activitySettings.api);
+		};
+		const items = (state?.items ?? []).filter(shown);
+		const alert = items.find((a) => a.expiresAt != null);
+		const ongoing = items.filter((a) => a.expiresAt == null);
+		const top = alert ?? ongoing[0];
+
+		return {
+			active: !!top,
+			priority: top?.priority ?? 0,
+			hidden: !top,
+			accent: top?.color ?? undefined,
+			icon: top ? (
+				<Badge icon={top.icon} image={top.image} color={top.color ?? "#fff"} size={22} glyphSize={11} />
+			) : (
+				<RefreshCwIcon size={14} />
+			),
+			compact: top && {
+				left: <ActivityCompactLeft activity={top} />,
+				right: <ActivityCompactRight activity={top} />,
+				width: top.style === "level" ? 300 : 340,
+			},
+			expanded: alert ? (
+				<div className="flex h-full flex-col gap-1 overflow-y-auto [scrollbar-width:none]">
+					<ActivityCard activity={alert} />
+				</div>
+			) : (
+				<div className="flex h-full flex-col gap-1 overflow-y-auto [scrollbar-width:none]" data-scroll>
+					{ongoing.map((a) => (
+						<ActivityCard key={a.id} activity={a} compact />
+					))}
+					{!ongoing.length && <NothingYet />}
+				</div>
+			),
+			expandedSize: alert
+				? { width: 560, height: alert.progress != null || alert.subtitle ? 128 : 104 }
+				: { width: 560, height: 40 + Math.min(Math.max(ongoing.length, 1), MAX_ROWS) * ROW },
+			// Alerts that ask for it (notifications, low battery, "Claude answered") open the island.
+			activityKey: alert?.expand ? `${alert.id}:${alert.updatedAt}` : undefined,
+		};
+	},
+};
+
+/** Pinned to the tab bar with nothing going on. */
+function NothingYet() {
+	const t = useT();
+	return <Empty>{t("activities.empty")}</Empty>;
+}

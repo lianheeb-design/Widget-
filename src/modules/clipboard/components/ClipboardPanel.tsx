@@ -1,0 +1,286 @@
+import { ClipboardIcon, CopyIcon, ExternalLinkIcon, FolderIcon, MessageCircleIcon, TextIcon } from "lucide-react";
+import { type PointerEvent, type ReactNode, useRef, useState } from "react";
+import { TextButton } from "../../../components/ui/button";
+import { providerAction } from "../../../core/bridge";
+import { cn } from "../../../core/cn";
+import { type Translate, useT } from "../../../core/i18n";
+import { useIsland } from "../../../core/island";
+import { formatAgo, useNow } from "../../ai-agents/common/format";
+import { attachFiles, draftRequest, requestAskFocus, useAskEnabled } from "../../ask/store";
+import { addToShelf } from "../../shelf/actions";
+import { CLIPBOARD_PROVIDER, CLIPBOARD_YELLOW, type ClipboardState, type ClipItem, clipAction } from "../types";
+
+const DRAG_THRESHOLD = 5;
+/** How long "Copied!" / "Kept" stays on a row. */
+const FEEDBACK_MS = 1400;
+
+/** What the item is, on one line ("Picture 1920×1080", "3 files", the text). */
+export function clipTitle(t: Translate, item: ClipItem): string {
+	if (item.kind === "image") {
+		return item.screenshot
+			? t("clipboard.screenshot")
+			: t("clipboard.picture", { w: item.width ?? 0, h: item.height ?? 0 });
+	}
+	if (item.kind === "files")
+		return item.names.length === 1 ? item.names[0] : t("clipboard.files", { n: item.names.length });
+	return item.preview ?? "";
+}
+
+/**
+ * The latest picture, shown big while it's fresh (a screenshot that just
+ * opened the island), then the history. `hero` comes from the module view so
+ * the panel size matches.
+ */
+export function ClipboardPanel({ state, hero }: { state: ClipboardState | undefined; hero: boolean }) {
+	const t = useT();
+	const items = state?.items ?? [];
+	const [first, ...rest] = items;
+
+	return (
+		<div className="flex h-full flex-col gap-1.5" onClick={(e) => e.stopPropagation()}>
+			<div className="flex items-center justify-between gap-3">
+				<span className="text-[12px] text-text-dim">{items.length ? t("clipboard.hint") : t("clipboard.empty")}</span>
+				{items.length > 0 && (
+					<TextButton onClick={() => providerAction(CLIPBOARD_PROVIDER, "clear")}>{t("clipboard.clear")}</TextButton>
+				)}
+			</div>
+			{hero && first ? (
+				<>
+					<Hero item={first} />
+					<ul className="min-h-0 flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
+						{rest.map((item) => (
+							<Row key={item.id} item={item} />
+						))}
+					</ul>
+				</>
+			) : (
+				<ul className="min-h-0 flex-1 list-none overflow-y-auto [scrollbar-width:none]" data-scroll>
+					{items.map((item) => (
+						<Row key={item.id} item={item} />
+					))}
+					{!items.length && (
+						<li className="grid h-full place-items-center text-text-faint">
+							<ClipboardIcon size={22} />
+						</li>
+					)}
+				</ul>
+			)}
+		</div>
+	);
+}
+
+/** Actions shared by rows and the hero, with a short confirmation. */
+function useItemActions(item: ClipItem) {
+	const island = useIsland();
+	const askEnabled = useAskEnabled();
+	const [done, setDone] = useState<"copied" | "kept" | null>(null);
+	const timer = useRef<number | undefined>(undefined);
+	const flash = (what: "copied" | "kept") => {
+		setDone(what);
+		window.clearTimeout(timer.current);
+		timer.current = window.setTimeout(() => setDone(null), FEEDBACK_MS);
+	};
+
+	return {
+		done,
+		copy: () => clipAction("copy", item.id).then(() => flash("copied")),
+		keep: async () => {
+			const paths = await clipAction<string[]>("keep", item.id);
+			if (paths?.length) {
+				await addToShelf(paths);
+				flash("kept");
+			}
+		},
+		// Left out while "Ask Claude" is turned off.
+		ask: askEnabled
+			? async () => {
+					if (item.kind === "text") {
+						const text = await clipAction<string>("text", item.id);
+						if (text) draftRequest.set(text);
+					} else if (item.kind === "image" && item.path) {
+						await attachFiles([item.path]);
+					} else {
+						const paths = await clipAction<string[]>("keep", item.id);
+						if (paths?.length) await attachFiles(paths);
+					}
+					requestAskFocus();
+					island.expand("ask");
+				}
+			: undefined,
+		open: () => clipAction("open", item.id),
+		remove: () => clipAction("remove", item.id),
+	};
+}
+
+/** Drag a picture or files out of the island to any app. */
+function useDragOut(item: ClipItem) {
+	const press = useRef<{ x: number; y: number; id: number } | null>(null);
+	if (item.kind === "text") return {};
+	return {
+		onPointerDown: (e: PointerEvent) => {
+			if (e.button !== 0 || (e.target as Element).closest("button")) return;
+			press.current = { x: e.clientX, y: e.clientY, id: e.pointerId };
+		},
+		onPointerMove: (e: PointerEvent) => {
+			const p = press.current;
+			if (!p || p.id !== e.pointerId || (e.buttons & 1) === 0) return;
+			if (Math.hypot(e.clientX - p.x, e.clientY - p.y) < DRAG_THRESHOLD) return;
+			press.current = null;
+			clipAction("drag", item.id);
+		},
+		onPointerUp: () => (press.current = null),
+	};
+}
+
+function Visual({ item, size }: { item: ClipItem; size: number }) {
+	if (item.kind === "image" && item.thumb) {
+		return (
+			<img
+				className="flex-none rounded-[7px] bg-white/6 object-cover"
+				src={item.thumb}
+				alt=""
+				draggable={false}
+				style={{ width: size, height: size }}
+			/>
+		);
+	}
+	return (
+		<span className="grid flex-none place-items-center rounded-[9px] bg-white/7" style={{ width: size, height: size }}>
+			{item.kind === "files" ? (
+				<FolderIcon size={size * 0.42} color="#64D2FF" />
+			) : (
+				<TextIcon size={size * 0.42} color={CLIPBOARD_YELLOW} />
+			)}
+		</span>
+	);
+}
+
+function Meta({ item }: { item: ClipItem }) {
+	const t = useT();
+	const now = useNow(30_000);
+	const parts = [
+		item.kind === "text" && item.chars != null && item.chars > 40 ? t("clipboard.chars", { n: item.chars }) : null,
+		item.kind === "files" && item.names.length > 1 ? item.names.slice(0, 3).join(", ") : null,
+		item.source,
+		formatAgo(t, item.copiedAt, now),
+	].filter(Boolean);
+	return <span className="truncate text-[11.5px] text-text-dim">{parts.join(" · ")}</span>;
+}
+
+function Row({ item }: { item: ClipItem }) {
+	const t = useT();
+	const a = useItemActions(item);
+	const drag = useDragOut(item);
+
+	return (
+		<li
+			className="group relative flex h-12 cursor-pointer items-center gap-2.5 rounded-xl px-2 hover:bg-white/6"
+			title={t("clipboard.copy")}
+			data-no-drag
+			onClick={a.copy}
+			{...drag}
+		>
+			<Visual item={item} size={36} />
+			<div className="flex min-w-0 flex-1 flex-col gap-px">
+				<span className={cn("truncate text-[13px] font-semibold", item.kind === "text" && "font-medium")}>
+					{clipTitle(t, item)}
+				</span>
+				{a.done ? (
+					<span className="truncate text-[11.5px] font-semibold text-[#30d158]">
+						✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}
+					</span>
+				) : (
+					<Meta item={item} />
+				)}
+			</div>
+			<div className="hidden gap-1 group-hover:flex">
+				{a.ask && <RowAction icon={<MessageCircleIcon size={11} />} label={t("clipboard.ask")} onClick={a.ask} />}
+				{item.kind !== "text" && (
+					<RowAction icon={<FolderIcon size={11} />} label={t("clipboard.keep")} onClick={a.keep} />
+				)}
+				<RowAction icon="×" label={t("clipboard.remove")} onClick={a.remove} />
+			</div>
+		</li>
+	);
+}
+
+function Hero({ item }: { item: ClipItem }) {
+	const t = useT();
+	const a = useItemActions(item);
+	const drag = useDragOut(item);
+
+	return (
+		<div className="flex h-29 flex-none cursor-grab gap-3.5 rounded-[14px] bg-card p-1.5" data-no-drag {...drag}>
+			{item.thumb && (
+				<img
+					className="h-26 max-w-47.5 flex-none rounded-[9px] bg-white/4 object-contain"
+					src={item.thumb}
+					alt=""
+					draggable={false}
+				/>
+			)}
+			<div className="flex min-w-0 flex-1 flex-col justify-center gap-0.5">
+				<span className="truncate text-[13px] font-semibold">{clipTitle(t, item)}</span>
+				{a.done ? (
+					<span className="truncate text-[11.5px] font-semibold text-[#30d158]">
+						✓ {t(a.done === "copied" ? "clipboard.copiedAgain" : "clipboard.kept")}
+					</span>
+				) : (
+					<Meta item={item} />
+				)}
+				<div className="mt-2 flex flex-wrap gap-1.5">
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.copy")}
+						onClick={a.copy}
+					>
+						<CopyIcon size={11} /> {t("clipboard.short.copy")}
+					</button>
+					{a.ask && (
+						<button
+							type="button"
+							className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+							title={t("clipboard.ask")}
+							onClick={a.ask}
+						>
+							<MessageCircleIcon size={11} /> {t("clipboard.short.ask")}
+						</button>
+					)}
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.keep")}
+						onClick={a.keep}
+					>
+						<FolderIcon size={11} /> {t("clipboard.short.keep")}
+					</button>
+					<button
+						type="button"
+						className="inline-flex items-center gap-1.25 rounded-full bg-white/10 px-2.5 py-1 text-[11.5px] font-semibold hover:bg-white/18"
+						title={t("clipboard.open")}
+						onClick={a.open}
+					>
+						<ExternalLinkIcon size={11} /> {t("clipboard.open")}
+					</button>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+function RowAction({ icon, label, onClick }: { icon: ReactNode; label: string; onClick: () => void }) {
+	return (
+		<button
+			type="button"
+			className="grid size-6 place-items-center rounded-full bg-[#3a3a3c] text-[14px] leading-none hover:bg-[#4a4a4e]"
+			title={label}
+			onClick={(e) => {
+				e.stopPropagation();
+				onClick();
+			}}
+		>
+			{icon}
+		</button>
+	);
+}

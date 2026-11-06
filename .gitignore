@@ -1,0 +1,21 @@
+node_modules
+dist
+src-tauri/target
+src-tauri/gen
+*.log
+.playwright-mcp
+
+.env
+
+*.tsbuildinfo
+
+website/.astro/
+
+.astro
+
+# Dateien vom Installieren und Veröffentlichen
+installieren-log.txt
+updates-einrichten-log.txt
+update-veroeffentlichen-log.txt
+Dynamic-Island-Deutsch-Setup.exe
+aenderungen.patch
