@@ -42,6 +42,8 @@ const PRIORITY: Record<AgentStatus, number> = { waiting: 90, limitsReset: 80, do
 
 export const aiAgentsModule: IslandModule = {
 	id: "ai-agents",
+	// Off unless turned on: it shows running Claude Code / Codex sessions in the island.
+	enabledByDefault: false,
 	title: "agents.title",
 	settingsIcon: <SparklesIcon size={15} />,
 	settings: Object.values(agentSettings),

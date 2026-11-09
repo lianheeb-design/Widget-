@@ -270,6 +270,7 @@
       timer: "Timer",
       stopwatch: "Stoppuhr",
       focus: "Fokus",
+      alarm: "Wecker",
     },
     stopwatch: {
       running: "Stoppuhr läuft",
@@ -661,15 +662,6 @@
     note: "Der Wecker klingelt, solange der PC an ist und die Insel läuft, auch nach einem Neustart der App. Aus dem Energiesparmodus kann er den PC nicht wecken. Hat der PC gerade gehangen, klingelt er bis zu 30 Minuten später noch.",
   },
 
-  snake: {
-    title: "Snake",
-    start: "Klicken zum Spielen",
-    paused: "Pause",
-    over: "Vorbei: {n} Punkte",
-    hint: "Pfeiltasten oder WASD · Leertaste pausiert · Esc verlässt",
-    score: "Punkte: {n}",
-    best: "Bestwert: {n}",
-  },
 
   focus: {
     start: "Fokus starten",

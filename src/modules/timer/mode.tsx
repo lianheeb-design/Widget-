@@ -2,7 +2,7 @@ import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
 import { createStore } from "../../core/island";
 
-export type TimerMode = "timer" | "stopwatch" | "focus";
+export type TimerMode = "timer" | "stopwatch" | "focus" | "alarm";
 
 /** Which of the two the panel shows while neither is running. */
 export const timerMode = createStore<TimerMode>("timer");
@@ -13,7 +13,7 @@ export function ModeSwitch() {
 	const mode = timerMode.use();
 	return (
 		<div className="flex gap-1">
-			{(["timer", "stopwatch", "focus"] as const).map((m) => (
+			{(["timer", "stopwatch", "focus", "alarm"] as const).map((m) => (
 				<button
 					key={m}
 					type="button"

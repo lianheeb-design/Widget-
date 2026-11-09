@@ -293,6 +293,7 @@
       timer: "Timer",
       stopwatch: "Stopwatch",
       focus: "Focus",
+      alarm: "Alarm",
     },
     stopwatch: {
       running: "Stopwatch running",
@@ -684,15 +685,6 @@
     note: "Alarms ring while the PC is on and the island is running, also after a restart of the app. They can't wake the PC from sleep. One missed while the PC was busy rings up to 30 minutes late.",
   },
 
-  snake: {
-    title: "Snake",
-    start: "Click to play",
-    paused: "Paused",
-    over: "Game over: {n} points",
-    hint: "Arrow keys or WASD · Space pauses · Esc leaves",
-    score: "Points: {n}",
-    best: "Best: {n}",
-  },
 
   focus: {
     start: "Start focus",

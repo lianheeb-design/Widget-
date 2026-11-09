@@ -1,6 +1,7 @@
 import { AlarmClockIcon, AlarmClockOffIcon, BellRingIcon, PlayIcon, PlusIcon, Trash2Icon } from "lucide-react";
 /**
- * Alarm clock: alarms at a time of day, once or on chosen weekdays. A ringing
+ * Alarm clock, the timer module's fourth mode: alarms at a time of day, once
+ * or on chosen weekdays. A ringing
  * alarm takes over the island and rings (in the backend, Windows' alarm
  * tones) until it is turned off or snoozed. Alarms are kept in the settings,
  * so they survive a restart; one missed while the PC was busy still rings up
@@ -13,11 +14,12 @@ import { Segmented, Select } from "../../components/ui/form";
 import { cn } from "../../core/cn";
 import { useLocale, useT } from "../../core/i18n";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
-import type { IslandModule, ModuleView } from "../../core/types";
+
 import { fieldClass, newId, smallButton, useKeyboard } from "../shared";
-import { playChime, primeChime } from "../timer/chime";
 import { tools } from "../tools/bridge";
-import { type Alarm, dueRing, nextOccurrence, nextRing, type Ring, untilParts, WEEK } from "./schedule";
+import { type Alarm, dueRing, nextOccurrence, nextRing, type Ring, untilParts, WEEK } from "./alarmSchedule";
+import { playChime, primeChime } from "./chime";
+import { ModeSwitch } from "./mode";
 
 const ACCENT = "#FF9F0A";
 /** A ringing alarm turns itself off after this long. */
@@ -145,16 +147,9 @@ function AlarmList({
 
 	return (
 		<div className="flex h-full flex-col gap-2 px-1" onClick={(e) => e.stopPropagation()}>
-			<div className="flex items-center gap-1.5 text-[12px] font-[650] text-text-dim">
-				<AlarmClockIcon size={13} color={ACCENT} />
-				{next ? (
-					<span className="truncate">
-						{t("alarm.next", { time: timeOf(next.at) })} · <Until at={next.at} now={now} />
-					</span>
-				) : (
-					<span>{list.length ? t("alarm.allOff") : t("alarm.empty")}</span>
-				)}
-				{snoozed && (
+			<div className="flex items-center gap-2 text-[12px] font-[650] text-text-dim">
+				<ModeSwitch />
+				{snoozed ? (
 					<button
 						type="button"
 						className="ml-auto flex-none rounded-full bg-[rgba(255,159,10,0.18)] px-2.5 py-0.5 text-[11.5px] font-bold text-[#ffc56b] hover:bg-[rgba(255,159,10,0.28)]"
@@ -162,6 +157,12 @@ function AlarmList({
 					>
 						{t("alarm.snoozedUntil", { time: timeOf(snoozed.at) })} ✕
 					</button>
+				) : next ? (
+					<span className="ml-auto truncate">
+						{t("alarm.next", { time: timeOf(next.at) })} · <Until at={next.at} now={now} />
+					</span>
+				) : (
+					<span className="ml-auto truncate">{list.length ? t("alarm.allOff") : t("alarm.empty")}</span>
 				)}
 			</div>
 			<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-scroll>
@@ -402,68 +403,61 @@ function AlarmSettings() {
 	);
 }
 
-export const alarmModule: IslandModule = {
-	id: "alarm",
-	title: "alarm.title",
-	settingsIcon: <AlarmClockIcon size={15} />,
-	settings: Object.values(alarmSettings),
-	SettingsSection: AlarmSettings,
-	useView(): ModuleView {
-		const t = useT();
-		const showBubble = useSetting(alarmSettings.showBubble);
-		const r = useRinging();
-		const ringing = !!r.ring && !!r.alarm;
+export const ALARM_ACCENT = ACCENT;
 
-		return {
-			active: ringing || !!r.snoozed,
-			// A ringing alarm beats everything, even a finished timer.
-			priority: ringing ? 97 : 30,
-			accent: ACCENT,
-			icon: <AlarmClockIcon size={15} color={ACCENT} />,
-			compact: ringing
-				? {
-						left: (
-							<span className="flex items-center gap-2 text-[13px] font-[650]">
-								<BellRingIcon size={15} color={ACCENT} className="animate-pulse" />
-								{r.alarm?.label || t("alarm.title")}
-							</span>
-						),
-						right: (
-							<span className="text-[12.5px] font-bold tabular-nums" style={{ color: ACCENT }}>
-								{r.alarm?.time}
-							</span>
-						),
-						width: 250,
-					}
-				: r.snoozed
-					? {
-							left: (
-								<span className="flex items-center gap-2 text-[13px] font-[650]">
-									<AlarmClockIcon size={15} color={ACCENT} />
-									{t("alarm.snoozed")}
-								</span>
-							),
-							right: (
-								<span className="text-[12px] font-bold tabular-nums" style={{ color: ACCENT }}>
-									{timeOf(r.snoozed.at)}
-								</span>
-							),
-							width: 250,
-						}
-					: undefined,
-			ambient: showBubble && r.anyOn ? <AlarmClockIcon size={16} color={ACCENT} /> : undefined,
-			expanded:
-				ringing && r.alarm ? (
-					<RingingPanel alarm={r.alarm} onSnooze={r.snooze} onStop={r.stop} />
-				) : (
-					<AlarmList now={r.now} snoozed={r.snoozed} onCancelSnooze={r.cancelSnooze} />
+/**
+ * The alarm part of the timer module: checks the alarms all the time and
+ * says what the island shows for them (a ringing alarm takes over).
+ */
+export function useAlarm() {
+	const t = useT();
+	const showBubble = useSetting(alarmSettings.showBubble);
+	const r = useRinging();
+	const ringing = !!r.ring && !!r.alarm;
+
+	const ringingCompact = ringing
+		? {
+				left: (
+					<span className="flex items-center gap-2 text-[13px] font-[650]">
+						<BellRingIcon size={15} color={ACCENT} className="animate-pulse" />
+						{r.alarm?.label || t("alarm.title")}
+					</span>
 				),
-			expandedSize: ringing
-				? { width: 560, height: 120 }
-				: { width: 560, height: Math.min(300, 118 + Math.max(1, r.count) * 40) },
-			activityKey: r.ring ? `ring:${r.ring.id}:${r.ring.at}` : undefined,
-			attention: ringing,
-			forceExpanded: ringing,
-		};
-	},
-};
+				right: (
+					<span className="text-[12.5px] font-bold tabular-nums" style={{ color: ACCENT }}>
+						{r.alarm?.time}
+					</span>
+				),
+				width: 250,
+			}
+		: undefined;
+	const snoozedCompact = r.snoozed
+		? {
+				left: (
+					<span className="flex items-center gap-2 text-[13px] font-[650]">
+						<AlarmClockIcon size={15} color={ACCENT} />
+						{t("alarm.snoozed")}
+					</span>
+				),
+				right: (
+					<span className="text-[12px] font-bold tabular-nums" style={{ color: ACCENT }}>
+						{timeOf(r.snoozed.at)}
+					</span>
+				),
+				width: 250,
+			}
+		: undefined;
+
+	return {
+		ringing,
+		snoozed: !!r.snoozed,
+		compact: ringingCompact ?? snoozedCompact,
+		ambient: showBubble && r.anyOn ? <AlarmClockIcon size={16} color={ACCENT} /> : undefined,
+		ringingPanel: ringing && r.alarm ? <RingingPanel alarm={r.alarm} onSnooze={r.snooze} onStop={r.stop} /> : undefined,
+		listPanel: <AlarmList now={r.now} snoozed={r.snoozed} onCancelSnooze={r.cancelSnooze} />,
+		listHeight: Math.min(300, 118 + Math.max(1, r.count) * 40),
+		activityKey: r.ring ? `ring:${r.ring.id}:${r.ring.at}` : undefined,
+	};
+}
+
+export { AlarmSettings };

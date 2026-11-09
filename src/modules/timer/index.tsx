@@ -5,9 +5,11 @@ import { BrainIcon, CoffeeIcon, TimerIcon, TimerResetIcon } from "lucide-react";
  * chime when it's done. Frontend only, no provider.
  */
 import { useCallback, useEffect, useState } from "react";
+import { Divider } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
 import { setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
+import { AlarmSettings, alarmSettings, useAlarm } from "./alarm";
 import { playChime, primeChime } from "./chime";
 import { TimerRemaining } from "./components/TimerCompact";
 import { TimerPanel } from "./components/TimerPanel";
@@ -17,6 +19,17 @@ import { TIMER_ACCENT, timerLastMinutes, timerSettings } from "./settings";
 import { StopwatchPanel, StopwatchRemaining, useStopwatch } from "./stopwatch";
 
 const MINUTE = 60_000;
+
+/** Focus mode and alarm settings, one after the other. */
+function TimerSettings() {
+	return (
+		<>
+			<FocusSettings />
+			<Divider />
+			<AlarmSettings />
+		</>
+	);
+}
 
 interface TimerState {
 	deadline: number | null;
@@ -88,8 +101,8 @@ export const timerModule: IslandModule = {
 	id: "timer",
 	title: "timer.title",
 	settingsIcon: <TimerIcon size={15} />,
-	settings: [...Object.values(timerSettings), ...Object.values(focusSettings)],
-	SettingsSection: FocusSettings,
+	settings: [...Object.values(timerSettings), ...Object.values(focusSettings), ...Object.values(alarmSettings)],
+	SettingsSection: TimerSettings,
 	useView(): ModuleView {
 		const t = useT();
 		const sound = useSetting(timerSettings.sound);
@@ -106,6 +119,8 @@ export const timerModule: IslandModule = {
 		const focus = useFocus(sound);
 		const focusOn = focus.state.phase !== "idle";
 		const showFocus = !timerShown && mode === "focus";
+		const alarm = useAlarm();
+		const showAlarm = !timerShown && mode === "alarm";
 
 		const timerCompact = {
 			left: (
@@ -150,13 +165,38 @@ export const timerModule: IslandModule = {
 		};
 
 		return {
-			active: timerShown || watchTouched || focusOn,
-			// A finished timer beats everything; a running one beats the music.
-			priority: timer.due ? 95 : timer.deadline ? 52 : focusOn && focus.state.deadline ? 51 : watchRunning ? 50 : 20,
+			active: alarm.ringing || timerShown || watchTouched || focusOn || alarm.snoozed,
+			// A ringing alarm beats everything, then a finished timer; a running one beats the music.
+			priority: alarm.ringing
+				? 97
+				: timer.due
+					? 95
+					: timer.deadline
+						? 52
+						: focusOn && focus.state.deadline
+							? 51
+							: watchRunning
+								? 50
+								: alarm.snoozed
+									? 30
+									: 20,
 			accent: TIMER_ACCENT,
 			icon: <TimerIcon size={15} color={TIMER_ACCENT} />,
-			compact: timerShown ? timerCompact : focusOn ? focusCompact : watchTouched ? stopwatchCompact : undefined,
-			expanded: showFocus ? (
+			compact: alarm.ringing
+				? alarm.compact
+				: timerShown
+					? timerCompact
+					: focusOn
+						? focusCompact
+						: watchTouched
+							? stopwatchCompact
+							: alarm.compact,
+			ambient: alarm.ambient,
+			expanded: alarm.ringingPanel ? (
+				alarm.ringingPanel
+			) : showAlarm ? (
+				alarm.listPanel
+			) : showFocus ? (
 				<FocusPanel focus={focus} />
 			) : showStopwatch ? (
 				<StopwatchPanel stopwatch={stopwatch} />
@@ -175,14 +215,16 @@ export const timerModule: IslandModule = {
 					onDismiss={timer.stop}
 				/>
 			),
-			expandedSize: { width: 560, height: 128 },
-			activityKey: timer.due
-				? `due:${timer.finishedAt}`
-				: focus.state.switches
-					? `focus:${focus.state.switches}`
-					: undefined,
-			attention: timer.due,
-			forceExpanded: timer.due,
+			expandedSize: alarm.ringing
+				? { width: 560, height: 120 }
+				: showAlarm
+					? { width: 560, height: alarm.listHeight }
+					: { width: 560, height: 128 },
+			activityKey:
+				alarm.activityKey ??
+				(timer.due ? `due:${timer.finishedAt}` : focus.state.switches ? `focus:${focus.state.switches}` : undefined),
+			attention: alarm.ringing || timer.due,
+			forceExpanded: alarm.ringing || timer.due,
 		};
 	},
 };
