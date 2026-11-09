@@ -25,6 +25,7 @@ use tauri_plugin_global_shortcut::ShortcutState;
 use hub::Hub;
 use providers::Providers;
 
+pub use logfile::AFTER_CRASH_FLAG;
 pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
 pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
 
@@ -102,6 +103,8 @@ pub fn run() {
             settings::set_autostart,
             settings::open_repo,
             settings::open_external,
+            settings::export_settings,
+            settings::import_settings,
             updater::check_update,
             updater::install_update,
             i18n::set_locale,

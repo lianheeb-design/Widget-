@@ -9,12 +9,13 @@ import { Divider } from "../../components/ui/card";
 import { useT } from "../../core/i18n";
 import { setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
+import { CountdownPanel, countdownItems } from "../countdown";
 import { AlarmSettings, alarmSettings, useAlarm } from "./alarm";
 import { playChime, primeChime } from "./chime";
 import { TimerRemaining } from "./components/TimerCompact";
 import { TimerPanel } from "./components/TimerPanel";
 import { FocusPanel, FocusRemaining, FocusSettings, focusSettings, useFocus } from "./focus";
-import { timerMode } from "./mode";
+import { ModeSwitch, timerMode } from "./mode";
 import { TIMER_ACCENT, timerLastMinutes, timerSettings } from "./settings";
 import { StopwatchPanel, StopwatchRemaining, useStopwatch } from "./stopwatch";
 
@@ -121,6 +122,8 @@ export const timerModule: IslandModule = {
 		const showFocus = !timerShown && mode === "focus";
 		const alarm = useAlarm();
 		const showAlarm = !timerShown && mode === "alarm";
+		const showCountdown = !timerShown && mode === "countdown";
+		const countdowns = useSetting(countdownItems).length;
 
 		const timerCompact = {
 			left: (
@@ -195,6 +198,8 @@ export const timerModule: IslandModule = {
 			menu: timerShown ? [{ label: t("menu.stopTimer"), onSelect: timer.stop, danger: true }] : undefined,
 			expanded: alarm.ringingPanel ? (
 				alarm.ringingPanel
+			) : showCountdown ? (
+				<CountdownPanel header={<ModeSwitch />} />
 			) : showAlarm ? (
 				alarm.listPanel
 			) : showFocus ? (
@@ -220,7 +225,9 @@ export const timerModule: IslandModule = {
 				? { width: 560, height: 120 }
 				: showAlarm
 					? { width: 560, height: alarm.listHeight }
-					: { width: 560, height: 128 },
+					: showCountdown
+						? { width: 560, height: Math.min(290, 140 + Math.max(1, countdowns) * 46) }
+						: { width: 560, height: 128 },
 			activityKey:
 				alarm.activityKey ??
 				(timer.due ? `due:${timer.finishedAt}` : focus.state.switches ? `focus:${focus.state.switches}` : undefined),

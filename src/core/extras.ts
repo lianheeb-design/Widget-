@@ -72,7 +72,7 @@ export const useDesktop = () => useProvider<DesktopState>(DESKTOP_ID);
 
 /** Focus mode quiets peeks from everything but these modules. */
 export const focusQuiet = createStore(false);
-export const QUIET_ALLOWED = new Set(["timer", "controls", "update"]);
+export const QUIET_ALLOWED = new Set(["timer", "controls", "update", "transit"]);
 
 /** Current temperature in the weather module's unit, for the resting pill. */
 export const currentTemperature = createStore<number | null>(null);

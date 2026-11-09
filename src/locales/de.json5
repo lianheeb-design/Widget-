@@ -6,6 +6,7 @@
   },
 
   settings: {
+    advanced: "Erweitert",
     subtitle: "Einstellungen",
     section: {
       app: "App",
@@ -112,9 +113,13 @@
     drag: "Ziehen zum Ordnen",
     place: "Wo der Reiter des Moduls erscheint",
     placeDesc: "Im Launcher (Raster-Taste) ist es immer auch.",
-    inBar: "In der Leiste, wenn nicht leer",
-    inBarAlways: "Immer in der Leiste",
+    inBar: "In der Leiste (räumt sich auf)",
+    inBarAlways: "Fest angeheftet",
     inLauncher: "Nur im Launcher",
+    autoTidy: {
+      label: "Reiter automatisch aufräumen",
+      desc: "Module, die du 2 Wochen nicht geöffnet hast, wandern ins Raster (⊞). Fest angeheftete bleiben.",
+    },
   },
 
   music: {
@@ -282,6 +287,7 @@
       stopwatch: "Stoppuhr",
       focus: "Fokus",
       alarm: "Wecker",
+      countdown: "Countdown",
     },
     stopwatch: {
       running: "Stoppuhr läuft",
@@ -469,6 +475,97 @@
     },
   },
 
+  search: {
+    placeholder: "Einstellung suchen…",
+    none: "Nichts gefunden.",
+  },
+
+  profiles: {
+    page: "Profile & Routinen",
+    lead: "Profile bestimmen, welche Module die Insel zeigt. Routinen erledigen Dinge von selbst.",
+    title: "Profil",
+    all: "Alles",
+    activeDesc: "Wechseln geht auch per Rechtsklick auf die Insel.",
+    name: {
+      school: "Schule",
+      free: "Freizeit",
+      gaming: "Gaming",
+    },
+    modules: "Module in diesem Profil",
+    modulesDesc: "Nur diese zeigt die Insel. Wecker und fertige Timer melden sich trotzdem.",
+    quiet: "Ruhig",
+    quietDesc: "Keine Einblendungen, nur Wichtiges wie Wecker, Timer und Zug.",
+    auto: "Automatisch einschalten",
+    autoDesc: "An diesen Tagen und Zeiten schaltet sich das Profil ein und danach wieder aus.",
+  },
+
+  routines: {
+    title: "Routinen",
+    commute: {
+      label: "Schul- oder Arbeitsweg live",
+      desc: "Zur gewählten Zeit verfolgt die Insel die nächste Verbindung deiner Strecke live.",
+      noRoute: "Wähle zuerst eine Strecke unter Abfahrten → Verbindung.",
+    },
+    evening: {
+      label: "Ruhiger Abend",
+      desc: "In dieser Zeit wird die Insel etwas dunkler und meldet sich nur bei Wichtigem.",
+    },
+  },
+
+  briefing: {
+    label: "Morgen-Briefing",
+    desc: "Am Morgen, wenn du zum ersten Mal am PC bist: Wetter, nächster Zug, Wecker und Countdown auf einen Blick.",
+    showNow: "Jetzt zeigen",
+    morning: "Guten Morgen!",
+    day: "Hallo!",
+    evening: "Guten Abend!",
+    thanks: "Danke!",
+    alarm: "Wecker",
+  },
+
+  tour: {
+    title: "Willkommen",
+    skip: "Überspringen",
+    back: "Zurück",
+    next: "Weiter",
+    done: "Los geht’s!",
+    s1: {
+      title: "Willkommen bei deiner Insel!",
+      text: "Fahr mit der Maus darüber, dann klappt sie auf. Nimm die Maus weg, und sie klappt wieder zu.",
+    },
+    s2: {
+      title: "Reiter und Raster",
+      text: "Deine Module sind die Reiter. Alle findest du im Raster ⊞. Was du lange nicht brauchst, räumt sich von selbst dorthin.",
+    },
+    s3: {
+      title: "Rechtsklick und Mausrad",
+      text: "Rechtsklick auf die Insel öffnet ein Schnellmenü mit Profilen. Das Mausrad wechselt zwischen Reitern und laufenden Anzeigen.",
+    },
+    s4: {
+      title: "Alles einstellen",
+      text: "Rechtsklick → Einstellungen, oder das Insel-Symbol unten rechts in der Taskleiste: Aussehen, Module, Profile und Routinen.",
+    },
+  },
+
+  backup: {
+    label: "Einstellungen sichern",
+    desc: "Speichert alle Einstellungen in eine Datei, z. B. für einen neuen PC. Schlüssel (DeepL, OpenAI) sind nicht dabei.",
+    save: "Sichern…",
+    restore: "Wiederherstellen…",
+    saved: "Gesichert ✓",
+    restored: "Wiederhergestellt ✓",
+    notBackup: "Diese Datei ist keine Insel-Sicherung.",
+    failed: "Das hat nicht geklappt.",
+  },
+
+  report: {
+    label: "Problem melden",
+    desc: "Öffnet eine Meldung auf GitHub und den Ordner mit dem Fehlerprotokoll. Häng dort die Datei island.log an.",
+    button: "Melden…",
+    issueTitle: "Problem: ",
+    issueBody: "Version: {version}\n\nWas ist passiert?\n\n\nWas hast du davor gemacht?\n\n\n(Bitte die Datei island.log aus dem geöffneten Ordner hier hineinziehen.)",
+  },
+
   menu: {
     whatsNew: "Was ist neu?",
     settings: "Einstellungen",
@@ -483,6 +580,16 @@
     done: "Alles klar",
     hide: "Ausblenden",
     none: "Für diese Version gibt es keine Hinweise.",
+    v100: {
+      hello: "Version 1.0 ist da! Die Insel ist jetzt schlauer, persönlicher und aufgeräumter.",
+      briefing: "Morgen-Briefing: Am Morgen zeigt die Insel kurz Wetter, nächsten Zug, Wecker und Countdown.",
+      profiles: "Profile (Schule, Freizeit, Gaming) bestimmen, welche Module die Insel zeigt. Wechseln per Rechtsklick auf die Insel.",
+      routines: "Routinen: z. B. jeden Morgen deine Strecke automatisch live verfolgen, oder ruhigere Abende. Unter Einstellungen → Profile & Routinen.",
+      tidy: "Aufgeräumt: Der Countdown ist jetzt im Timer, die Zwischenablage bei den Notizen. Reiter, die du 2 Wochen nicht öffnest, wandern ins Raster ⊞.",
+      games: "Bei Spielen und Präsentationen bleibt die Insel weg. Nur ein Wecker oder ein fertiger Timer kommt noch durch.",
+      backup: "Einstellungen sichern und wiederherstellen, und eine Suche in den Einstellungen.",
+      healing: "Stürzt die Insel ab, startet sie von selbst neu. Unter Einstellungen → Über gibt es „Problem melden“.",
+    },
     v070: {
       live: "Zug live verfolgen: Öffne bei Abfahrten → Verbindung eine Verbindung und klicke „Live verfolgen“. Oben in der Insel siehst du dann, in wie vielen Minuten dein Zug fährt (mit Verspätung), wo du umsteigst und wann du ankommst. Kurz vor der Abfahrt meldet sich die Insel.",
       rain: "Regen-Warnung: Kommt in der nächsten Stunde Regen, steht es oben in der Insel.",

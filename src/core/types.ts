@@ -56,6 +56,10 @@ export interface ModuleView {
 	showWhenOff?: boolean;
 	/** A new value bursts confetti out of the island (a timer or focus round done). */
 	celebrateKey?: string;
+	/** `false`: its tab can't be (re)opened right now (a finished tour). */
+	openable?: boolean;
+	/** How long a peek of this module lasts (ms, default 3.8 s). */
+	peekMs?: number;
 	/** Quick actions in the island's right-click menu (e.g. "Stop the live view"). */
 	menu?: { label: string; onSelect: () => void; danger?: boolean }[];
 }
@@ -66,6 +70,16 @@ export interface IslandModule {
 	title: MessageKey;
 	/** Static glyph for the settings sidebar. */
 	settingsIcon?: ReactNode;
+	/**
+	 * Lives inside another module's tab (the countdown in the timer): no tab or
+	 * launcher tile of its own. It can still own the compact island and peek.
+	 */
+	partOf?: string;
+	/**
+	 * Part of the island itself (what's new, the tour, the morning briefing):
+	 * no tab, no launcher tile, not in the modules list, and every profile shows it.
+	 */
+	system?: boolean;
 	/** Whether the module starts on before the user toggles it. Defaults to true. */
 	enabledByDefault?: boolean;
 	/**

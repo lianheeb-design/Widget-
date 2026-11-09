@@ -64,6 +64,60 @@ pub fn set_setting(app: AppHandle, key: String, value: Value) {
     set(&app, &key, value);
 }
 
+/// Marks a settings backup, so a random JSON file isn't taken for one.
+const BACKUP_KIND: &str = "island-settings-backup";
+
+/// Saves every setting to a file the person picks ("Back up settings").
+/// `Ok(false)`: cancelled. Secret keys aren't in there (they live in the
+/// Windows Credential Manager).
+#[tauri::command]
+pub async fn export_settings(app: AppHandle) -> Result<bool, String> {
+    let Some(path) = crate::dialog::pick_save(
+        "Island backup (*.json)",
+        "*.json",
+        "island-einstellungen.json",
+    ) else {
+        return Ok(false);
+    };
+    let backup = serde_json::json!({
+        "kind": BACKUP_KIND,
+        "version": app.package_info().version.to_string(),
+        "settings": app.state::<Settings>().snapshot(),
+    });
+    let text = serde_json::to_string_pretty(&backup).map_err(|e| e.to_string())?;
+    std::fs::write(&path, text).map_err(|e| e.to_string())?;
+    Ok(true)
+}
+
+/// Replaces every setting with those of a backup the person picks.
+/// `Ok(false)`: cancelled; `Err("notBackup")`: not a backup file.
+#[tauri::command]
+pub async fn import_settings(app: AppHandle) -> Result<bool, String> {
+    let Some(path) = crate::dialog::pick_file("Island backup (*.json)", "*.json") else {
+        return Ok(false);
+    };
+    let text = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
+    let data = parse_backup(&text).ok_or("notBackup")?;
+    let settings = app.state::<Settings>();
+    {
+        let mut current = settings.data.lock().unwrap();
+        *current = data.clone();
+        settings.save(&current);
+    }
+    let _ = app.emit(CHANGED_EVENT, data);
+    crate::tray::sync_hidden(&app);
+    Ok(true)
+}
+
+/// The settings inside a backup file, if it is one.
+fn parse_backup(text: &str) -> Option<Map<String, Value>> {
+    let value: Value = serde_json::from_str(text).ok()?;
+    if value.get("kind")?.as_str()? != BACKUP_KIND {
+        return None;
+    }
+    value.get("settings")?.as_object().cloned()
+}
+
 /// Store and broadcast a setting (backend side of `setSetting`).
 pub fn set(app: &AppHandle, key: &str, value: Value) {
     let settings = app.state::<Settings>();
@@ -161,4 +215,18 @@ pub fn get_autostart(app: AppHandle) -> bool {
 #[tauri::command]
 pub fn set_autostart(app: AppHandle, enabled: bool) -> Result<bool, String> {
     crate::autostart::set(&app, enabled)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn reads_only_backups() {
+        let ok = r#"{"kind":"island-settings-backup","version":"1.0.0","settings":{"a":1}}"#;
+        assert_eq!(parse_backup(ok).unwrap().get("a"), Some(&Value::from(1)));
+        assert!(parse_backup(r#"{"settings":{"a":1}}"#).is_none());
+        assert!(parse_backup("not json").is_none());
+        assert!(parse_backup(r#"{"kind":"island-settings-backup","settings":[1]}"#).is_none());
+    }
 }

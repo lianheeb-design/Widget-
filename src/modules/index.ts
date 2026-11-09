@@ -2,6 +2,7 @@ import type { IslandModule } from "../core/types";
 import { activitiesModule } from "./activities";
 import { aiAgentsModule } from "./ai-agents";
 import { askModule } from "./ask";
+import { briefingModule } from "./briefing";
 import { calculatorModule } from "./calculator";
 import { chatgptModule } from "./chatgpt";
 import { clipboardModule } from "./clipboard";
@@ -20,6 +21,7 @@ import { quickLaunchModule } from "./quicklaunch";
 import { reactionModule } from "./reaction";
 import { shelfModule } from "./shelf";
 import { timerModule } from "./timer";
+import { tourModule } from "./tour";
 import { transitModule } from "./transit";
 import { translateModule } from "./translate";
 import { updateModule } from "./update";
@@ -59,6 +61,8 @@ export const modules: IslandModule[] = [
 	reactionModule,
 	updateModule,
 	whatsNewModule,
+	briefingModule,
+	tourModule,
 	githubModule,
 	hydrationModule,
 	monitorModule,

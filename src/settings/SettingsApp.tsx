@@ -1,16 +1,18 @@
-import { CommandIcon, InfoIcon, LayoutGridIcon, PaletteIcon, SettingsIcon } from "lucide-react";
+import { CommandIcon, InfoIcon, LayoutGridIcon, PaletteIcon, RepeatIcon, SettingsIcon } from "lucide-react";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { useSyncLocale, useT } from "../core/i18n";
 import { useSettings } from "../core/settings";
 import { NavItem, NavSection } from "./components/NavItem";
+import { SettingsSearch } from "./components/SettingsSearch";
 import { TitleBar } from "./components/TitleBar";
 import { AboutPage } from "./pages/AboutPage";
 import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
 import { ModulePage } from "./pages/ModulePage";
 import { ModulesPage } from "./pages/ModulesPage";
+import { RoutinesPage } from "./pages/RoutinesPage";
 import { ShortcutsPage } from "./pages/ShortcutsPage";
 
 /**
@@ -30,12 +32,14 @@ export function SettingsApp() {
 				<TitleBar />
 				<div className="flex min-h-0 flex-1">
 					<nav className="flex w-53 flex-none flex-col gap-0.5 px-2.5 pt-2 pb-4">
+						<SettingsSearch />
 						<NavSection label={t("settings.section.app")} />
 						<NavItem to="/" icon={<SettingsIcon size={15} />} label={t("settings.general")} />
 						<NavItem to="/appearance" icon={<PaletteIcon size={15} />} label={t("appearance.title")} />
 						<NavSection label={t("settings.section.island")} />
 						{/* Stays highlighted on each module's own page too. */}
 						<NavItem to="/modules" end={false} icon={<LayoutGridIcon size={14} />} label={t("modules.title")} />
+						<NavItem to="/routines" icon={<RepeatIcon size={14} />} label={t("profiles.page")} />
 						<NavItem to="/shortcuts" icon={<CommandIcon size={14} />} label={t("shortcuts.title")} />
 						<div className="flex-1" />
 						<NavItem to="/about" icon={<InfoIcon size={15} />} label={t("settings.about.title")} />
@@ -47,6 +51,7 @@ export function SettingsApp() {
 								<Route path="appearance" element={<AppearancePage values={values} />} />
 								<Route path="modules" element={<ModulesPage values={values} />} />
 								<Route path="modules/:id" element={<ModulePage values={values} />} />
+								<Route path="routines" element={<RoutinesPage values={values} />} />
 								<Route path="shortcuts" element={<ShortcutsPage values={values} />} />
 								<Route path="about" element={<AboutPage />} />
 							</Routes>

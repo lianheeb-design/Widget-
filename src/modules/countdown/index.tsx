@@ -1,6 +1,6 @@
 import { CalendarClockIcon, PinIcon, PinOffIcon, PlusIcon, XIcon } from "lucide-react";
 /** Countdowns: days left until dates the person cares about. */
-import { useState } from "react";
+import { type ReactNode, useState } from "react";
 import { cn } from "../../core/cn";
 import { useLocale, useT } from "../../core/i18n";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
@@ -18,7 +18,11 @@ interface Countdown {
 	date: string;
 }
 
-const items: SettingDef<Countdown[]> = { key: "countdown.items", label: "countdown.title", default: [] };
+export const countdownItems: SettingDef<Countdown[]> = {
+	key: "countdown.items",
+	label: "countdown.title",
+	default: [],
+};
 /** The countdown shown in the collapsed island, if any. */
 const pinned: SettingDef<string | null> = { key: "countdown.pinned", label: "countdown.pin", default: null };
 export const countdownSettings = {
@@ -41,11 +45,12 @@ const daysUntil = (date: string, now: number) => {
 	);
 };
 
-function CountdownPanel() {
+/** The countdown list (shown in the timer tab since 1.0, under its mode switch). */
+export function CountdownPanel({ header }: { header?: ReactNode }) {
 	const t = useT();
 	const locale = useLocale();
 	const now = useNow(60_000);
-	const list = useSetting(items);
+	const list = useSetting(countdownItems);
 	const top = useSetting(pinned);
 	const [name, setName] = useState("");
 	const [date, setDate] = useState("");
@@ -56,13 +61,14 @@ function CountdownPanel() {
 
 	const add = () => {
 		if (!name.trim() || !date) return;
-		setSetting(items, [...list, { id: newId(), name: name.trim(), date }]);
+		setSetting(countdownItems, [...list, { id: newId(), name: name.trim(), date }]);
 		setName("");
 		setDate("");
 	};
 
 	return (
 		<div className="flex h-full flex-col gap-2 px-1" onClick={(e) => e.stopPropagation()}>
+			{header}
 			<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-scroll>
 				{sorted.length === 0 && <p className="py-2 text-[12.5px] text-text-dim">{t("countdown.empty")}</p>}
 				{sorted.map((c) => {
@@ -106,7 +112,7 @@ function CountdownPanel() {
 								title={t("countdown.remove")}
 								onClick={() =>
 									setSetting(
-										items,
+										countdownItems,
 										list.filter((x) => x.id !== c.id),
 									)
 								}
@@ -146,11 +152,13 @@ function CountdownPanel() {
 export const countdownModule: IslandModule = {
 	id: "countdown",
 	title: "countdown.title",
+	// Its list lives in the timer tab; a pinned countdown still shows in the collapsed island.
+	partOf: "timer",
 	settingsIcon: <CalendarClockIcon size={15} />,
 	settings: Object.values(countdownSettings),
 	useView(): ModuleView {
 		const t = useT();
-		const list = useSetting(items);
+		const list = useSetting(countdownItems);
 		const showBubble = useSetting(countdownSettings.showBubble);
 		const now = useNow(10 * 60_000);
 		const pinnedId = useSetting(pinned);

@@ -12,6 +12,8 @@ import { CHATGPT_GREEN, chat, chatRunning } from "./store";
 export const chatgptModule: IslandModule = {
 	id: "chatgpt",
 	title: "chatgpt.title",
+	// Off on new installs since 1.0 (see `core/migrate.ts`).
+	enabledByDefault: false,
 	settingsIcon: <ChatIcon size={15} />,
 	SettingsSection: ChatSettings,
 	useView(): ModuleView {

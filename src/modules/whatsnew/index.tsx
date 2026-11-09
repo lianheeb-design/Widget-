@@ -19,6 +19,16 @@ export const WHATS_NEW = "whatsnew";
 
 /** What each version brings, newest first. */
 export const RELEASE_NOTES: Record<string, { icon: string; text: MessageKey }[]> = {
+	"1.0.0": [
+		{ icon: "🎉", text: "whatsnew.v100.hello" },
+		{ icon: "☀️", text: "whatsnew.v100.briefing" },
+		{ icon: "🎒", text: "whatsnew.v100.profiles" },
+		{ icon: "🔁", text: "whatsnew.v100.routines" },
+		{ icon: "🧹", text: "whatsnew.v100.tidy" },
+		{ icon: "🎮", text: "whatsnew.v100.games" },
+		{ icon: "💾", text: "whatsnew.v100.backup" },
+		{ icon: "🛟", text: "whatsnew.v100.healing" },
+	],
 	"0.7.0": [
 		{ icon: "🚆", text: "whatsnew.v070.live" },
 		{ icon: "🌧️", text: "whatsnew.v070.rain" },
@@ -81,6 +91,7 @@ function WhatsNewPanel() {
 export const whatsNewModule: IslandModule = {
 	id: WHATS_NEW,
 	title: "whatsnew.title",
+	system: true,
 	settingsIcon: <SparklesIcon size={15} />,
 	useView(): ModuleView {
 		const t = useT();
@@ -117,6 +128,8 @@ export const whatsNewModule: IslandModule = {
 				: undefined,
 			// Peeks once, a moment after the first start of a new version.
 			activityKey: fresh ? `whatsnew:${__APP_VERSION__}` : undefined,
+			// A big version is a party.
+			celebrateKey: fresh && /^\d+\.0\.0$/.test(__APP_VERSION__) ? `whatsnew:${__APP_VERSION__}` : undefined,
 			// Opening the island goes to the notes until they are read.
 			attention: fresh,
 			menu: fresh ? [{ label: t("whatsnew.hide"), onSelect: dismiss }] : undefined,

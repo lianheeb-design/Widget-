@@ -8,6 +8,8 @@ import { type ReactNode, useEffect } from "react";
 import { command } from "../../core/bridge";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
+import { PROFILE_EMOJI, PROFILE_IDS, profileActive } from "../../core/profiles";
+import { setSetting, useSetting } from "../../core/settings";
 import type { ModuleView } from "../../core/types";
 
 export type MenuItem = NonNullable<ModuleView["menu"]>[number];
@@ -25,6 +27,7 @@ export function QuickMenu({
 	onClose: () => void;
 }) {
 	const t = useT();
+	const profile = useSetting(profileActive);
 	useEffect(() => {
 		if (!at) return;
 		const key = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -60,6 +63,26 @@ export function QuickMenu({
 					onClick={(e) => e.stopPropagation()}
 					onContextMenu={(e) => e.preventDefault()}
 				>
+					{/* Profiles: which modules show (all, school, free time, gaming). */}
+					<div className="mb-1 flex gap-0.5 border-b border-white/8 pb-1">
+						{[null, ...PROFILE_IDS].map((id) => (
+							<button
+								type="button"
+								key={id ?? "all"}
+								title={id ? t(`profiles.name.${id}`) : t("profiles.all")}
+								className={cn(
+									"flex h-7 flex-1 items-center justify-center rounded-[8px] px-1.5 text-[12px] font-bold whitespace-nowrap",
+									profile === id ? "bg-white/16 text-text" : "text-text-dim hover:bg-white/8",
+								)}
+								onClick={() => {
+									setSetting(profileActive, id);
+									onClose();
+								}}
+							>
+								{id ? PROFILE_EMOJI[id] : t("profiles.all")}
+							</button>
+						))}
+					</div>
 					{all.map((item, i) => (
 						<button
 							type="button"

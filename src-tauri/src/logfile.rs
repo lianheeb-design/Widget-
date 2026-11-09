@@ -94,8 +94,42 @@ pub fn init(app: &AppHandle) {
         log::error!("crash: {info}");
         log::logger().flush();
         previous(info);
+        // The main thread runs the whole app: once it panics the island is gone, so
+        // start a fresh one (other threads' panics only end that thread).
+        if std::thread::current().name() == Some("main") {
+            restart_after_crash();
+            std::process::exit(1);
+        }
     }));
     log::info!("started version {}", app.package_info().version);
+}
+
+/// Passed to the new process after a crash: it waits for this one to be gone.
+pub const AFTER_CRASH_FLAG: &str = "--after-crash";
+/// Not more than one restart in this long: a crash right at the start would loop.
+const RESTART_WINDOW: std::time::Duration = std::time::Duration::from_secs(120);
+
+/// Starts the island again (self-healing), unless it already did so lately.
+fn restart_after_crash() {
+    let Some(dir) = DIR.get() else {
+        return;
+    };
+    let marker = dir.join("last-restart");
+    let recent = std::fs::metadata(&marker)
+        .and_then(|m| m.modified())
+        .is_ok_and(|t| t.elapsed().is_ok_and(|age| age < RESTART_WINDOW));
+    if recent {
+        log::error!("crash: not restarting again so soon");
+        return;
+    }
+    let _ = std::fs::write(&marker, b"");
+    if let Ok(exe) = std::env::current_exe() {
+        match std::process::Command::new(exe).arg(AFTER_CRASH_FLAG).spawn() {
+            Ok(_) => log::error!("crash: restarting"),
+            Err(e) => log::error!("crash: could not restart: {e}"),
+        }
+        log::logger().flush();
+    }
 }
 
 /// The folder with the logs, for the About page's button.

@@ -21,6 +21,8 @@ const MAX_VISIBLE_ROWS = 5;
 export const githubModule: IslandModule = {
 	id: "github",
 	title: "github.title",
+	// Off on new installs since 1.0 (see `core/migrate.ts`).
+	enabledByDefault: false,
 	settingsIcon: <GitHubIcon size={15} />,
 	settings: Object.values(githubSettings),
 	SettingsSection: GithubSettings,

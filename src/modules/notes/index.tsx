@@ -4,11 +4,15 @@ import { CheckIcon, NotebookPenIcon, XIcon } from "lucide-react";
  * settings so they survive restarts.
  */
 import { useEffect, useRef, useState } from "react";
+import { useProvider } from "../../core/bridge";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { type SettingDef, setSetting, useSetting } from "../../core/settings";
+import { createStore } from "../../core/island";
+import { moduleEnabled, type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
-import { newId, useKeyboard } from "../shared";
+import { ClipboardPanel } from "../clipboard/components/ClipboardPanel";
+import { CLIPBOARD_PROVIDER, type ClipboardState } from "../clipboard/types";
+import { newId, SubTabs, useKeyboard } from "../shared";
 
 const ACCENT = "#FFD60A";
 const SAVE_DELAY = 500;
@@ -157,6 +161,38 @@ function NotesPanel() {
 	);
 }
 
+/** The notes tab also holds the clipboard history (since 1.0). */
+const notesView = createStore<"notes" | "clipboard">("notes");
+const clipboardOn = moduleEnabled({ id: "clipboard", title: "clipboard.title" });
+
+function NotesTab() {
+	const t = useT();
+	const view = notesView.use();
+	const withClipboard = useSetting(clipboardOn);
+	const clipboard = useProvider<ClipboardState>(CLIPBOARD_PROVIDER);
+	const shown = withClipboard ? view : "notes";
+	return (
+		<div className="flex h-full flex-col gap-1.5">
+			{withClipboard && (
+				<div className="px-1" onClick={(e) => e.stopPropagation()}>
+					<SubTabs
+						accent={ACCENT}
+						value={shown}
+						onChange={notesView.set}
+						options={[
+							{ value: "notes", label: t("notes.title") },
+							{ value: "clipboard", label: t("clipboard.title") },
+						]}
+					/>
+				</div>
+			)}
+			<div className="min-h-0 flex-1">
+				{shown === "clipboard" ? <ClipboardPanel state={clipboard} hero={false} /> : <NotesPanel />}
+			</div>
+		</div>
+	);
+}
+
 function TodoBubble({ open }: { open: number }) {
 	return (
 		<>
@@ -183,8 +219,8 @@ export const notesModule: IslandModule = {
 			accent: ACCENT,
 			icon: <NotebookPenIcon size={15} color={ACCENT} />,
 			ambient: showBubble && open > 0 ? <TodoBubble open={open} /> : undefined,
-			expanded: <NotesPanel />,
-			expandedSize: { width: 560, height: 240 },
+			expanded: <NotesTab />,
+			expandedSize: { width: 560, height: 266 },
 		};
 	},
 };

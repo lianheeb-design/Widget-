@@ -57,6 +57,42 @@ function UpdateRow() {
 	);
 }
 
+/** Back up all settings to a file, or bring them back from one. */
+function BackupRows() {
+	const t = useT();
+	const [note, setNote] = useState<string | null>(null);
+	const run = (cmd: "export_settings" | "import_settings") =>
+		command<boolean>(cmd)
+			.then((ok) => ok && setNote(t(cmd === "export_settings" ? "backup.saved" : "backup.restored")))
+			.catch((e) => setNote(e === "notBackup" ? t("backup.notBackup") : t("backup.failed")));
+	return (
+		<Row label={t("backup.label")} desc={note ?? t("backup.desc")}>
+			<div className="flex gap-2">
+				<Button onClick={() => run("export_settings")}>{t("backup.save")}</Button>
+				<Button onClick={() => run("import_settings")}>{t("backup.restore")}</Button>
+			</div>
+		</Row>
+	);
+}
+
+/** Problems: the log folder opens, and a prefilled report on GitHub (version only, nothing personal). */
+function ReportRow() {
+	const t = useT();
+	const report = () => {
+		providerAction("tools", "open_log").catch(() => undefined);
+		const title = encodeURIComponent(t("report.issueTitle"));
+		const body = encodeURIComponent(t("report.issueBody", { version: __APP_VERSION__ }));
+		command("open_external", {
+			url: `https://github.com/lianheeb-design/Widget-/issues/new?title=${title}&body=${body}`,
+		}).catch(() => undefined);
+	};
+	return (
+		<Row label={t("report.label")} desc={t("report.desc")}>
+			<Button onClick={report}>{t("report.button")}</Button>
+		</Row>
+	);
+}
+
 export function AboutPage() {
 	const t = useT();
 
@@ -76,7 +112,11 @@ export function AboutPage() {
 						{t("settings.about.log.open")}
 					</Button>
 				</Row>
+				<ReportRow />
 				<Row label={t("settings.about.license")} desc="GNU GPL v3.0"></Row>
+			</Card>
+			<Card>
+				<BackupRows />
 			</Card>
 			<Card>
 				<div className="flex flex-col gap-2.5 px-4 py-3.5">

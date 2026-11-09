@@ -9,7 +9,7 @@ import type { IslandModule } from "../../core/types";
 import { modules } from "../../modules";
 import { Lead, Title } from "../components/Heading";
 import { PlacementSelect } from "../components/PlacementSelect";
-import { Toggle } from "../components/Toggle";
+import { Toggle, ToggleRow } from "../components/Toggle";
 
 /**
  * Every module of the island in one list: drag to reorder the tabs, choose
@@ -20,12 +20,20 @@ import { Toggle } from "../components/Toggle";
  */
 export function ModulesPage({ values }: { values: Record<string, unknown> }) {
 	const t = useT();
-	const ordered = inOrder(modules, (m) => m.id, readSetting(values, layoutSettings.order));
+	// The island's own parts (what's new, the tour, the briefing) aren't modules to arrange.
+	const ordered = inOrder(
+		modules.filter((m) => !m.system),
+		(m) => m.id,
+		readSetting(values, layoutSettings.order),
+	);
 
 	return (
 		<>
 			<Title>{t("modules.title")}</Title>
 			<Lead>{t("modules.desc")}</Lead>
+			<Card>
+				<ToggleRow def={layoutSettings.autoTidy} value={readSetting(values, layoutSettings.autoTidy)} />
+			</Card>
 			<Card>
 				<Reorder.Group
 					as="ul"

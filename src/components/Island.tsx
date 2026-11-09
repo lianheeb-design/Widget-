@@ -12,6 +12,7 @@ import { useIslandDrag } from "../core/useIslandDrag";
 import { modules } from "../modules";
 import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
+import { useRoutines } from "../modules/routines/engine";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
 import { islandContent } from "./island/content";
 import { Confetti, withMotion } from "./island/effects";
@@ -32,11 +33,12 @@ export function Island() {
 	useHitRects();
 	useSyncLocale();
 	useIslandFileDrop(ctl);
+	const routines = useRoutines();
 
 	const extras = useExtras();
 	const desktop = useDesktop();
 
-	const bigSize = ctl.launcher ? launcherSize(ctl.entries.length) : focused?.view.expandedSize;
+	const bigSize = ctl.launcher ? launcherSize(ctl.launcherEntries.length) : focused?.view.expandedSize;
 	const big = mode === "expanded" || mode === "peek";
 	const hidden = mode === "hidden";
 	const swallowed = mode === "swallowed";
@@ -170,7 +172,8 @@ export function Island() {
 						animate={{
 							width: g.width,
 							height: g.height,
-							opacity: hidden ? 0 : 1,
+							// Calm evenings: the resting island steps back a little.
+							opacity: hidden ? 0 : routines.dim && !big ? 0.6 : 1,
 							y: hidden ? -g.height - 12 - v.top : 0,
 						}}
 						transition={transition}

@@ -61,6 +61,9 @@ impl Provider for ToolsProvider {
             crate::settings::open_url(&dir.to_string_lossy());
             return Ok(Value::Null);
         }
+        if action == "idle_ms" {
+            return Ok(idle_ms().map_or(Value::Null, Value::from));
+        }
         if action == "clipboard_text" {
             return Ok(
                 crate::providers::clipboard::current_text().map_or(Value::Null, Value::String)
@@ -102,4 +105,25 @@ impl Provider for ToolsProvider {
         }
         system::action(action, &payload)
     }
+}
+
+/// How long ago the person last typed or moved the mouse (ms): whether
+/// someone is at the computer (the morning briefing waits for them).
+#[cfg(windows)]
+fn idle_ms() -> Option<u64> {
+    use windows::Win32::System::SystemInformation::GetTickCount;
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
+    let mut info = LASTINPUTINFO {
+        cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+        dwTime: 0,
+    };
+    unsafe { GetLastInputInfo(&mut info) }.as_bool().then(|| {
+        // Both wrap after 49 days; their difference doesn't.
+        u64::from(unsafe { GetTickCount() }.wrapping_sub(info.dwTime))
+    })
+}
+
+#[cfg(not(windows))]
+fn idle_ms() -> Option<u64> {
+    None
 }

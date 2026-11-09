@@ -1,6 +1,7 @@
 /** Small helpers shared by this fork's modules. */
 import { type KeyboardEvent, useEffect } from "react";
 import { command } from "../core/bridge";
+import { cn } from "../core/cn";
 import { useIsland } from "../core/island";
 
 /**
@@ -53,3 +54,39 @@ export const fieldClass =
 	"h-8 min-w-0 rounded-[11px] bg-white/7 px-2.5 text-[13px] text-text outline-none select-text placeholder:text-text-faint focus:bg-white/10";
 export const smallButton =
 	"flex h-8 flex-none items-center gap-1.5 rounded-[11px] bg-white/9 px-3 text-[12px] font-bold text-text-dim transition-[background] hover:bg-white/13 hover:text-text disabled:opacity-40";
+
+/** Small tabs inside a module's panel (Notes | Clipboard), in the module's color. */
+export function SubTabs<T extends string>({
+	options,
+	value,
+	onChange,
+	accent,
+}: {
+	options: { value: T; label: string }[];
+	value: T;
+	onChange: (value: T) => void;
+	accent: string;
+}) {
+	return (
+		<div className="flex flex-none gap-1">
+			{options.map((o) => (
+				<button
+					key={o.value}
+					type="button"
+					className={cn(
+						"rounded-full px-2 py-0.5 text-[11px] font-bold tracking-[0.04em] uppercase transition-[background,color] duration-150",
+						o.value === value ? "" : "text-text-faint hover:text-text-dim",
+					)}
+					style={
+						o.value === value
+							? { color: accent, background: `color-mix(in srgb, ${accent} 20%, transparent)` }
+							: undefined
+					}
+					onClick={() => onChange(o.value)}
+				>
+					{o.label}
+				</button>
+			))}
+		</div>
+	);
+}

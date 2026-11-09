@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
 import { openDelay } from "./extras";
+import { profileAllows } from "./profiles";
 import {
 	generalSettings,
 	ISLAND_HIDDEN_KEY,
@@ -9,6 +10,9 @@ import {
 	moduleEnabled,
 	readSetting,
 	type Values as Settings,
+	setSetting,
+	today,
+	usedRecently,
 	useSettings,
 } from "./settings";
 import type { IslandMode, IslandModule, ModuleEntry } from "./types";
@@ -55,7 +59,9 @@ export function useIslandController(modules: IslandModule[]) {
 	const forceExpanded = forcedId !== null;
 	const mode = islandMode({
 		swallowed: settings[ISLAND_HIDDEN_KEY] === true,
-		hidden: fullscreen && readSetting(settings, generalSettings.hideInFullscreen),
+		// Games and presentations: the island keeps out of the way, except for what
+		// can't wait (a ringing alarm, a finished timer).
+		hidden: fullscreen && readSetting(settings, generalSettings.hideInFullscreen) && !forceExpanded,
 		expanded: hover.open,
 		forceExpanded,
 		peeking: peekId !== null,
@@ -64,7 +70,8 @@ export function useIslandController(modules: IslandModule[]) {
 
 	// A remembered tab whose module was turned off meanwhile doesn't count.
 	const { tab } = tabMemory;
-	const openTab = tab === LAUNCHER || entries.some((e) => e.module.id === tab) ? tab : null;
+	const openTab =
+		tab === LAUNCHER || entries.some((e) => e.module.id === tab && e.view.openable !== false) ? tab : null;
 	const focusedId =
 		forcedId ??
 		(mode === "peek"
@@ -72,6 +79,15 @@ export function useIslandController(modules: IslandModule[]) {
 			: (openTab ?? primary?.module.id ?? entries.find((e) => !e.view.hidden)?.module.id ?? null));
 	const focused = entries.find((e) => e.module.id === focusedId);
 	const tabs = tabBar(entries, settings, focusedId);
+	const launcherEntries = entries.filter((e) => !e.module.partOf && !e.module.system);
+
+	// Remember when each tab was last looked at: tabs left alone for two weeks tidy themselves away.
+	const lookedAt = mode === "expanded" && focusedId && focusedId !== LAUNCHER ? focusedId : null;
+	useEffect(() => {
+		if (!lookedAt) return;
+		const opened = readSetting(settings, layoutSettings.lastOpened);
+		if (opened[lookedAt] !== today()) setSetting(layoutSettings.lastOpened, { ...opened, [lookedAt]: today() });
+	}, [lookedAt, settings]);
 
 	/** A tab picked by the user: the island may shrink away from the pointer. */
 	const selectTab = useCallback(
@@ -135,6 +151,7 @@ export function useIslandController(modules: IslandModule[]) {
 
 	return {
 		entries,
+		launcherEntries,
 		tabs,
 		launcher: mode === "expanded" && focusedId === LAUNCHER,
 		mode,
@@ -164,7 +181,15 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
 		modules
 			// biome-ignore lint/correctness/useHookAtTopLevel: the module registry is static, so the hook order is stable
 			.map((module) => ({ module, view: module.useView() }))
-			.filter(({ module, view }) => view.showWhenOff || readSetting(settings, moduleEnabled(module))),
+			.filter(({ module, view }) => view.showWhenOff || readSetting(settings, moduleEnabled(module)))
+			// The active profile shows its modules only, but never hides what can't wait.
+			.filter(
+				({ module, view }) =>
+					module.system ||
+					view.forceExpanded ||
+					view.showWhenOff ||
+					profileAllows(settings, module.partOf ?? module.id),
+			),
 		(e) => e.module.id,
 		readSetting(settings, layoutSettings.order),
 	);
@@ -211,18 +236,23 @@ function islandMode(s: {
 }
 
 /**
- * Tab bar: the pinned modules that aren't hidden (empty), those pinned "even
- * when empty", any busy one, and the focused one. Everything enabled is in the
- * launcher.
+ * Tab bar: the pinned modules that aren't hidden (empty) and were used lately
+ * (unless tidying is off), those pinned for good, any busy one, and the
+ * focused one. Everything enabled is in the launcher; modules living in
+ * another one's tab (`partOf`) never get their own.
  */
 function tabBar(entries: ModuleEntry[], settings: Settings, focusedId: string | null) {
 	const pinned = readSetting(settings, layoutSettings.pinned);
 	const pinnedAlways = readSetting(settings, layoutSettings.pinnedAlways);
+	const tidy = readSetting(settings, layoutSettings.autoTidy);
 	return entries.filter(
 		(e) =>
-			pinnedAlways.includes(e.module.id) ||
-			(!e.view.hidden && (pinned.includes(e.module.id) || e.view.active)) ||
-			e.module.id === focusedId,
+			e.module.id === focusedId ||
+			(!e.module.partOf &&
+				!e.module.system &&
+				(pinnedAlways.includes(e.module.id) ||
+					(!e.view.hidden &&
+						(e.view.active || (pinned.includes(e.module.id) && (!tidy || usedRecently(settings, e.module.id))))))),
 	);
 }
 

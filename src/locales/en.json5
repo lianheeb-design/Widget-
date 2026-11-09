@@ -12,6 +12,7 @@
 
   // Settings window
   settings: {
+    advanced: "Advanced",
     subtitle: "Settings",
     // Sidebar groups
     section: {
@@ -129,9 +130,13 @@
     drag: "Drag to reorder",
     place: "Where the module's tab goes",
     placeDesc: "It's always in the launcher too (the grid button).",
-    inBar: "In bar if not empty",
-    inBarAlways: "Always in bar",
+    inBar: "In the bar (tidies itself)",
+    inBarAlways: "Pinned for good",
     inLauncher: "Launcher only",
+    autoTidy: {
+      label: "Tidy up tabs",
+      desc: "Modules you haven’t opened in 2 weeks move to the grid (⊞). Pinned ones stay.",
+    },
   },
 
   // Music module
@@ -305,6 +310,7 @@
       stopwatch: "Stopwatch",
       focus: "Focus",
       alarm: "Alarm",
+      countdown: "Countdown",
     },
     stopwatch: {
       running: "Stopwatch running",
@@ -492,6 +498,97 @@
     },
   },
 
+  search: {
+    placeholder: "Search settings…",
+    none: "Nothing found.",
+  },
+
+  profiles: {
+    page: "Profiles & routines",
+    lead: "Profiles choose which modules the island shows. Routines do things by themselves.",
+    title: "Profile",
+    all: "All",
+    activeDesc: "You can also switch by right-clicking the island.",
+    name: {
+      school: "School",
+      free: "Free time",
+      gaming: "Gaming",
+    },
+    modules: "Modules in this profile",
+    modulesDesc: "The island shows only these. Alarms and finished timers still come through.",
+    quiet: "Quiet",
+    quietDesc: "No pop-ups, only what matters: alarms, timers, trains.",
+    auto: "Switch on automatically",
+    autoDesc: "On these days and times the profile switches on, and off again after.",
+  },
+
+  routines: {
+    title: "Routines",
+    commute: {
+      label: "Way to school or work, live",
+      desc: "At the chosen time the island follows the next connection of your route live.",
+      noRoute: "First pick a route in Departures → Connection.",
+    },
+    evening: {
+      label: "Calm evening",
+      desc: "During this time the island dims a little and only speaks up for what matters.",
+    },
+  },
+
+  briefing: {
+    label: "Morning briefing",
+    desc: "In the morning, the first time you’re at the computer: weather, next train, alarm and countdown at a glance.",
+    showNow: "Show now",
+    morning: "Good morning!",
+    day: "Hello!",
+    evening: "Good evening!",
+    thanks: "Thanks!",
+    alarm: "Alarm",
+  },
+
+  tour: {
+    title: "Welcome",
+    skip: "Skip",
+    back: "Back",
+    next: "Next",
+    done: "Let’s go!",
+    s1: {
+      title: "Welcome to your island!",
+      text: "Move the mouse over it and it opens. Move away and it closes again.",
+    },
+    s2: {
+      title: "Tabs and grid",
+      text: "Your modules are the tabs. The grid ⊞ has all of them. What you don’t use for a while tidies itself away there.",
+    },
+    s3: {
+      title: "Right-click and mouse wheel",
+      text: "Right-click the island for a quick menu with profiles. The mouse wheel switches tabs and running activities.",
+    },
+    s4: {
+      title: "Set it up your way",
+      text: "Right-click → Settings, or the island icon at the bottom right of the taskbar: look, modules, profiles and routines.",
+    },
+  },
+
+  backup: {
+    label: "Back up settings",
+    desc: "Saves all settings to a file, e.g. for a new PC. Keys (DeepL, OpenAI) aren’t included.",
+    save: "Back up…",
+    restore: "Restore…",
+    saved: "Saved ✓",
+    restored: "Restored ✓",
+    notBackup: "This file isn’t an island backup.",
+    failed: "That didn’t work.",
+  },
+
+  report: {
+    label: "Report a problem",
+    desc: "Opens a report on GitHub and the folder with the error log. Attach the file island.log there.",
+    button: "Report…",
+    issueTitle: "Problem: ",
+    issueBody: "Version: {version}\n\nWhat happened?\n\n\nWhat did you do before?\n\n\n(Please drag the file island.log from the opened folder in here.)",
+  },
+
   menu: {
     whatsNew: "What's new?",
     settings: "Settings",
@@ -506,6 +603,16 @@
     done: "Got it",
     hide: "Hide",
     none: "No notes for this version.",
+    v100: {
+      hello: "Version 1.0 is here! The island is now smarter, more personal and tidier.",
+      briefing: "Morning briefing: in the morning the island briefly shows weather, next train, alarm and countdown.",
+      profiles: "Profiles (school, free time, gaming) choose which modules the island shows. Switch by right-clicking the island.",
+      routines: "Routines: e.g. follow your route live every morning, or calmer evenings. In Settings → Profiles & routines.",
+      tidy: "Tidier: the countdown is now in the timer, the clipboard with the notes. Tabs you don’t open for 2 weeks move to the grid ⊞.",
+      games: "During games and presentations the island stays away. Only an alarm or a finished timer comes through.",
+      backup: "Back up and restore your settings, and search the settings.",
+      healing: "If the island crashes, it restarts by itself. About has “Report a problem”.",
+    },
     v070: {
       live: "Follow a train live: in Departures → Connection, open a connection and click “Follow live”. The island then shows how many minutes until your train leaves (with delays), where to change and when you arrive, and speaks up shortly before the departure.",
       rain: "Rain warning: when rain is coming within the hour, the island shows it.",

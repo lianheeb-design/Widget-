@@ -39,6 +39,8 @@ function InstallButton({ compact }: { compact?: boolean }) {
 export const updateModule: IslandModule = {
 	id: "update",
 	title: "update.title",
+	// Part of the island: every profile shows a ready update.
+	system: true,
 	settingsIcon: <DownloadIcon size={15} />,
 	useView(): ModuleView {
 		const t = useT();

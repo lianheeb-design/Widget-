@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card, Row } from "../../components/ui/card";
+import { Card, Collapsible, Row } from "../../components/ui/card";
 import { NumberField, Select } from "../../components/ui/form";
 import { command, isTauri } from "../../core/bridge";
 import { type LanguagePref, languageSetting, locales, systemLocale, useT } from "../../core/i18n";
@@ -19,17 +19,16 @@ export function GeneralPage({ values }: { values: Record<string, unknown> }) {
 					<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
 				))}
 			</Card>
-			<Card>
+			{/* Screens and dragging: rarely needed, folded away. */}
+			<Collapsible title={t("settings.advanced")}>
 				<MonitorRow value={readSetting(values, monitorSettings.monitor)} />
 				<ToggleRow def={monitorSettings.avoidMaximized} value={readSetting(values, monitorSettings.avoidMaximized)} />
-			</Card>
-			<Card>
 				<ToggleRow def={positionSettings.returnToCenter} value={readSetting(values, positionSettings.returnToCenter)} />
 				<SecondsRow
 					value={readSetting(values, positionSettings.returnDelay)}
 					disabled={!readSetting(values, positionSettings.returnToCenter)}
 				/>
-			</Card>
+			</Collapsible>
 		</>
 	);
 }

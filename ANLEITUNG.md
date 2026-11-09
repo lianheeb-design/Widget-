@@ -17,6 +17,13 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Wecker** (im Timer, neben Stoppuhr und Fokus): Weckzeiten einmalig oder an gewählten Wochentagen, mit Name. Beim Klingeln öffnet sich die Insel mit einem Windows-Weckton, bis du auf *Ausschalten* oder *Schlummern* klickst. Weckton und Schlummerdauer in *Einstellungen → Module → Timer*. Der Wecker klingelt, solange der PC an ist; aus dem Energiesparmodus weckt er ihn nicht.
 - **Ort und Haltestelle wählen**: Beim Wetter und bei den Abfahrten auf den Ortsnamen in der Insel klicken, tippen und den richtigen Treffer aus der Liste wählen. Zuletzt verwendete Orte stehen gleich zur Auswahl.
 - **Verbindungen** (im Modul *Abfahrten*, Ansicht *Verbindung*): Von und Nach eingeben, z. B. Altstätten SG → St. Gallen, und die nächsten Verbindungen mit Gleis, Verspätung, Dauer und Umstiegen sehen. Ein Klick zeigt, wo du umsteigst; mit ⭐ speicherst du Lieblingsstrecken.
+- **Version 1.0 – schlauer und aufgeräumter**:
+  - **Morgen-Briefing**: Am Morgen, wenn du zum ersten Mal am PC bist, zeigt die Insel kurz Wetter, nächsten Zug, Wecker und Countdown.
+  - **Profile** (Schule, Freizeit, Gaming): bestimmen, welche Module die Insel zeigt, auf Wunsch automatisch zu festen Zeiten. Wechseln per Rechtsklick auf die Insel. Gaming ist ruhig: keine Einblendungen ausser Wecker, Timer und Zug.
+  - **Routinen** (*Einstellungen → Profile & Routinen*): Schul- oder Arbeitsweg automatisch live verfolgen, ruhiger Abend.
+  - **Aufgeräumt**: Countdown ist im Timer, die Zwischenablage bei den Notizen. Reiter, die du 2 Wochen nicht öffnest, wandern ins Raster ⊞ (abschaltbar unter *Einstellungen → Module*; *Fest angeheftet* bleibt immer).
+  - **Spiele und Präsentationen**: Die Insel bleibt weg, nur ein Wecker oder ein fertiger Timer kommt durch.
+  - **Willkommens-Tour** bei einer Neuinstallation, **Suche** in den Einstellungen, **Einstellungen sichern/wiederherstellen** und **Problem melden** (*Einstellungen → Über*). Stürzt die Insel ab, startet sie von selbst neu.
 - **Zug live verfolgen**: In einer Verbindung auf *Live verfolgen* klicken. Die zugeklappte Insel zeigt dann z. B. „IR 13 · Gl. 2 · in 7 Min“ mit Verspätung, unterwegs das Umsteigen und die Ankunft. Kurz vor der Abfahrt (einstellbar in *Einstellungen → Module → Abfahrten*) klappt die Insel auf und pulsiert rot. Am Ziel verschwindet die Anzeige von selbst.
 - **Regen-Warnung**: Kommt in der nächsten Stunde Regen, steht „Regen kommt · in 15 Min“ oben in der Insel (abschaltbar beim Wetter).
 - **Countdown oben**: Im Countdown auf die Stecknadel klicken, dann steht er dauerhaft in der Insel.

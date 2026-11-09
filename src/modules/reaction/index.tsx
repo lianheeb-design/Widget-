@@ -148,6 +148,8 @@ function ReactionPanel() {
 export const reactionModule: IslandModule = {
 	id: "reaction",
 	title: "reaction.title",
+	// Off on new installs since 1.0 (see `core/migrate.ts`).
+	enabledByDefault: false,
 	settingsIcon: <ZapIcon size={15} />,
 	useView(): ModuleView {
 		return {

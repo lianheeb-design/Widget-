@@ -3,6 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { Island } from "./components/Island";
 import { isTauri, providerAction, startBridge } from "./core/bridge";
+import { migrateSettings } from "./core/migrate";
 import { startSettings } from "./core/settings";
 import { PipApp } from "./pip/PipApp";
 import { SettingsApp } from "./settings/SettingsApp";
@@ -14,6 +15,9 @@ startSettings();
 // Same bundle for every window; pick the UI by window label
 // (or `#settings` / `#pip` when previewing in a browser).
 const label = isTauri ? getCurrentWindow().label : location.hash.slice(1) || "island";
+
+// New defaults of a new version, once (the island window does it for all).
+if (label === "island") migrateSettings();
 
 // Errors in the UI go to the app's error log (About → "Open error log").
 if (isTauri) {

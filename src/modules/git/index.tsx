@@ -11,6 +11,8 @@ import { GIT_ACCENT } from "./settings";
 export const gitModule: IslandModule = {
 	id: "git",
 	title: "git.title",
+	// Off on new installs since 1.0 (see `core/migrate.ts`).
+	enabledByDefault: false,
 	settingsIcon: <GitBranchIcon size={15} />,
 	SettingsSection: GitSettings,
 	useView(): ModuleView {

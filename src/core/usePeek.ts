@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { focusQuiet, QUIET_ALLOWED } from "./extras";
+import { calm } from "./profiles";
 import type { ModuleEntry } from "./types";
 
 const PEEK_DURATION = 3800;
@@ -12,10 +13,10 @@ export function usePeek(entries: ModuleEntry[]) {
 	const [peekId, setPeekId] = useState<string | null>(null);
 	const timer = useRef<number | undefined>(undefined);
 
-	const peek = useCallback((moduleId: string) => {
+	const peek = useCallback((moduleId: string, ms = PEEK_DURATION) => {
 		setPeekId(moduleId);
 		window.clearTimeout(timer.current);
-		timer.current = window.setTimeout(() => setPeekId(null), PEEK_DURATION);
+		timer.current = window.setTimeout(() => setPeekId(null), ms);
 	}, []);
 
 	const endPeek = useCallback(() => {
@@ -33,8 +34,13 @@ export function usePeek(entries: ModuleEntry[]) {
 			const seen = lastKeys.current.has(module.id);
 			const prev = lastKeys.current.get(module.id);
 			lastKeys.current.set(module.id, view.activityKey);
-			if (seen && view.activityKey && view.activityKey !== prev && (!focusQuiet.get() || QUIET_ALLOWED.has(module.id)))
-				peek(module.id);
+			if (
+				seen &&
+				view.activityKey &&
+				view.activityKey !== prev &&
+				((!focusQuiet.get() && !calm.get()) || QUIET_ALLOWED.has(module.id))
+			)
+				peek(module.id, view.peekMs);
 		}
 	}, [keySignature]);
 

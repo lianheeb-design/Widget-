@@ -35,10 +35,14 @@ const subscribe = (l: () => void) => {
 
 const LOCAL_KEY = "island-settings";
 
-let started = false;
-export async function startSettings() {
-	if (started) return;
-	started = true;
+let loaded: Promise<void> | null = null;
+/** Loads the settings once; resolves when they are in (also for later callers). */
+export function startSettings(): Promise<void> {
+	loaded ??= load();
+	return loaded;
+}
+
+async function load() {
 	if (!isTauri) {
 		try {
 			values = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "{}");
@@ -59,6 +63,9 @@ export async function startSettings() {
 export function readSetting<T>(all: Values, def: SettingDef<T>): T {
 	return (def.key in all ? all[def.key] : def.default) as T;
 }
+
+/** The settings right now (outside React). */
+export const currentSettings = () => values;
 
 /** Whole settings map (re-renders on any change). */
 export function useSettings(): Values {
@@ -139,13 +146,45 @@ export const layoutSettings = {
 			"clock",
 		],
 	} satisfies SettingDef<string[]>,
-	/** Module ids kept in the tab bar even when they have nothing to show (e.g. an empty shelf). */
+	/**
+	 * Module ids pinned for good: in the tab bar even when they have nothing to
+	 * show (e.g. an empty shelf), and never tidied away.
+	 */
 	pinnedAlways: {
 		key: "island.pinnedAlways",
 		label: "layout.pinned",
 		default: [] as string[],
 	} satisfies SettingDef<string[]>,
+	/** Tabs not opened for {@link TIDY_DAYS} days leave the bar for the launcher. */
+	autoTidy: {
+		key: "island.autoTidy",
+		label: "layout.autoTidy.label",
+		description: "layout.autoTidy.desc",
+		default: true,
+	} satisfies SettingDef,
+	/** Day number (days since 1970) each module's tab was last opened. */
+	lastOpened: {
+		key: "usage.lastOpened",
+		label: "layout.pinned",
+		default: {} as Record<string, number>,
+	} satisfies SettingDef<Record<string, number>>,
+	/** Day number usage tracking started: a tab never opened counts as opened then. */
+	usageSince: {
+		key: "usage.since",
+		label: "layout.pinned",
+		default: 0,
+	} satisfies SettingDef<number>,
 };
+
+export const TIDY_DAYS = 14;
+export const today = () => Math.floor((Date.now() - new Date().getTimezoneOffset() * 60_000) / 86_400_000);
+
+/** Whether module `id`'s tab was opened in the last {@link TIDY_DAYS} days. */
+export function usedRecently(values: Values, id: string) {
+	const since = readSetting(values, layoutSettings.usageSince) || today();
+	const last = readSetting(values, layoutSettings.lastOpened)[id] ?? since;
+	return today() - last < TIDY_DAYS;
+}
 
 /** Where a module's tab goes: the launcher only, the tab bar, or the tab bar even when empty. */
 export type Placement = "launcher" | "bar" | "always";

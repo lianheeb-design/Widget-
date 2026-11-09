@@ -35,6 +35,8 @@ function ClipboardSettings() {
 export const clipboardModule: IslandModule = {
 	id: "clipboard",
 	title: "clipboard.title",
+	// Its list lives in the notes tab; it still flashes what was just copied.
+	partOf: "notes",
 	settingsIcon: <ClipboardIcon size={14} />,
 	settings: Object.values(clipboardSettings),
 	SettingsSection: ClipboardSettings,
