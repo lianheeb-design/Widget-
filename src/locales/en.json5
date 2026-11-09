@@ -566,7 +566,7 @@
       title: "AI apps",
       desc: "ChatGPT, Claude, Gemini and more as buttons in the island. Choose per app: in the island, in the browser or in the desktop app.",
       refresh: "Look again",
-      hint: "Island: the web app opens in its own window right under the island. Sign in there once and you stay signed in. Closing only hides the window, so your chat is kept; a second click on the button hides it too. Auto: the desktop app when installed, otherwise the browser. Right-click a button to open it in the browser (or in the island when it would open in the browser anyway). If signing in fails in the island (e.g. with Google), choose Browser.",
+      hint: "Island: the web app opens right inside the island (the “AI apps” tab). Sign in there once and you stay signed in. The island stays open until you click ✕ at the top; your chat is kept. Auto: the desktop app when installed, otherwise the browser. Right-click a button to open it in the browser (or in the island when it would open in the browser anyway). If signing in fails in the island (e.g. with Google), choose Browser.",
       tooltipSwap: "Opens {where} · right-click: {other}",
       mode: {
         off: "Off",
@@ -626,6 +626,17 @@
       notFound: "No stop found with that name.",
       change: "Choose another stop",
     },
+  },
+
+  webapps: {
+    title: "AI apps",
+    loading: "Loading {name}…",
+    failed: "Couldn't open it. Reload or open it in the browser.",
+    hint: "Pick an app: it opens right here in the island. Which apps show up is set in the quick launch settings.",
+    back: "Back",
+    reload: "Reload",
+    browser: "Open in the browser",
+    close: "Close",
   },
 
   picker: {

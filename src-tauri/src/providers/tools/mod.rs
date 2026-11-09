@@ -52,11 +52,25 @@ impl Provider for ToolsProvider {
             crate::providers::clipboard::copy_text(hub, text)?;
             return Ok(Value::Null);
         }
-        if action == "open_webapp" {
+        if let Some(what) = action.strip_prefix("webapp_") {
             let hub = self.hub.get().ok_or("not started")?;
-            let field = |key: &str| payload[key].as_str().unwrap_or_default();
-            crate::webapp::toggle(hub.app(), field("id"), field("url"), field("title"))?;
-            return Ok(Value::Null);
+            let app = hub.app();
+            let id = payload["id"].as_str().unwrap_or_default();
+            return match what {
+                "show" => {
+                    let rect: crate::webapp::Rect = serde_json::from_value(payload["rect"].clone())
+                        .map_err(|e| e.to_string())?;
+                    let url = payload["url"].as_str().unwrap_or_default();
+                    crate::webapp::show(app, id, url, rect).map(|_| Value::Null)
+                }
+                "hide" => {
+                    crate::webapp::hide(app);
+                    Ok(Value::Null)
+                }
+                "focus" => crate::webapp::focus(app, id).map(|_| Value::Null),
+                other => crate::webapp::command(app, id, other)
+                    .map(|url| url.map_or(Value::Null, Value::String)),
+            };
         }
         if action == "pick_color" {
             let hub = self.hub.get().cloned().ok_or("not started")?;

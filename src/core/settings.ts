@@ -126,7 +126,18 @@ export const layoutSettings = {
 	pinned: {
 		key: "island.pinned",
 		label: "layout.pinned",
-		default: ["music", "ai-agents", "chatgpt", "notifications", "controls", "notes", "timer", "git", "clock"],
+		default: [
+			"music",
+			"ai-agents",
+			"chatgpt",
+			"webapps",
+			"notifications",
+			"controls",
+			"notes",
+			"timer",
+			"git",
+			"clock",
+		],
 	} satisfies SettingDef<string[]>,
 	/** Module ids kept in the tab bar even when they have nothing to show (e.g. an empty shelf). */
 	pinnedAlways: {

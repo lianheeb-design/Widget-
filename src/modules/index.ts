@@ -24,6 +24,7 @@ import { timerModule } from "./timer";
 import { transitModule } from "./transit";
 import { updateModule } from "./update";
 import { weatherModule } from "./weather";
+import { webAppsModule } from "./webapps";
 
 /**
  * Every module the island knows about, in tab order.
@@ -46,6 +47,7 @@ export const modules: IslandModule[] = [
 	weatherModule,
 	controlsModule,
 	quickLaunchModule,
+	webAppsModule,
 	notesModule,
 	countdownModule,
 	transitModule,

@@ -9,12 +9,13 @@ import { Block, Desc, Divider, Row } from "../../components/ui/card";
 import { Input } from "../../components/ui/form";
 import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
+import { useIsland } from "../../core/island";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { newId } from "../shared";
 import { errorText, tools } from "../tools/bridge";
 import { AiSettings } from "./AiSettings";
-import { alternative, openAi, resolve, useAiButtons, useInstalledApps } from "./ai";
+import { alternative, openAi, resolve, useAiButtons, useInstalledApps, WEBAPPS_MODULE } from "./ai";
 
 const ACCENT = "#BF5AF2";
 
@@ -39,6 +40,8 @@ function QuickPanel() {
 	const list = useSetting(buttons);
 	const ai = useAiButtons();
 	const { installed } = useInstalledApps();
+	const island = useIsland();
+	const showInIsland = () => island.expand(WEBAPPS_MODULE);
 	const [error, setError] = useState<string | null>(null);
 	if (!list.length && !ai.length) {
 		return (
@@ -75,13 +78,13 @@ function QuickPanel() {
 							})}
 							className={tile}
 							onClick={() =>
-								openAi(app, mode, installed)
+								openAi(app, mode, installed, showInIsland)
 									.then(() => setError(null))
 									.catch(() => setError(t("quick.failed")))
 							}
 							onContextMenu={(e) => {
 								e.preventDefault();
-								openAi(app, mode, installed, true)
+								openAi(app, mode, installed, showInIsland, true)
 									.then(() => setError(null))
 									.catch(() => setError(t("quick.failed")));
 							}}

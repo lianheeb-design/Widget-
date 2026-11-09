@@ -1,106 +1,142 @@
-//! Web apps (ChatGPT, Claude, Gemini…) in their own window that drops down
-//! under the island, instead of a browser tab. One window per app: closing it
-//! only hides it, so the conversation is still there next time, and logins
-//! stay in the island's WebView2 profile.
+//! Web apps (ChatGPT, Claude, Gemini…) inside the island: each one is a
+//! child webview of the island window, laid over the rect the island's
+//! "AI apps" panel reserves for it. Hiding keeps it alive, so the
+//! conversation is still there next time, and logins stay in the island's
+//! WebView2 profile.
 //!
 //! The page is a remote site: it gets no Tauri capabilities (see
-//! `capabilities/default.json`, which lists only the island's own windows),
-//! so it can't call any command. Links that want a new window open in the
-//! default browser.
+//! `capabilities/default.json`, which grants them to the island's own
+//! webviews only), so it can't call any command. Links that want a new
+//! window open in the default browser.
 
+use serde::Deserialize;
 use tauri::webview::NewWindowResponse;
 use tauri::{
-    AppHandle, Manager, PhysicalPosition, Url, WebviewUrl, WebviewWindow, WebviewWindowBuilder,
-    WindowEvent,
+    AppHandle, LogicalPosition, LogicalSize, Manager, Url, Webview, WebviewBuilder, WebviewUrl,
 };
 
 const LABEL_PREFIX: &str = "webapp-";
-/// Logical size: about a phone's width, most of a laptop screen's height.
-const SIZE: (f64, f64) = (460.0, 720.0);
-/// Logical gap between the top of the screen and the window, under the pill.
-const TOP: f64 = 64.0;
 
-/// `id` names the app (`chatgpt`), `url` its https start page. Shows its
-/// window, or hides it when it is already in front (a second click on the
-/// island's button).
-pub fn toggle(app: &AppHandle, id: &str, url: &str, title: &str) -> Result<(), String> {
+/// Where the panel wants the web app, in CSS px of the island window.
+#[derive(Deserialize, Clone, Copy, Debug)]
+pub struct Rect {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+fn label_of(id: &str) -> Result<String, String> {
     if id.is_empty() || !id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-') {
         return Err("bad id".into());
     }
+    Ok(format!("{LABEL_PREFIX}{id}"))
+}
+
+fn web_apps(app: &AppHandle) -> Vec<Webview> {
+    app.webviews()
+        .into_iter()
+        .filter(|(label, _)| label.starts_with(LABEL_PREFIX))
+        .map(|(_, webview)| webview)
+        .collect()
+}
+
+/// Shows web app `id` (created on first use at `url`) over `rect`, hides
+/// the others, and gives it the keyboard.
+pub fn show(app: &AppHandle, id: &str, url: &str, rect: Rect) -> Result<(), String> {
+    let label = label_of(id)?;
     let url: Url = url.parse().map_err(|_| "bad url".to_string())?;
     if url.scheme() != "https" {
         return Err("only https".into());
     }
-    let label = format!("{LABEL_PREFIX}{id}");
-    if let Some(win) = app.get_webview_window(&label) {
-        let visible = win.is_visible().unwrap_or(false);
-        let focused = win.is_focused().unwrap_or(false);
-        if visible && focused {
-            return win.hide().map_err(|e| e.to_string());
-        }
-        place(app, &win);
-        let _ = win.unminimize();
-        win.show().map_err(|e| e.to_string())?;
-        return win.set_focus().map_err(|e| e.to_string());
+    if rect.width < 50.0 || rect.height < 50.0 {
+        return Err("too small".into());
     }
-    // Building a webview from a command on the main thread deadlocks on
-    // Windows (WebView2 needs the event loop): build it from another thread.
-    let app = app.clone();
-    let title = title.to_owned();
+    let island = app
+        .get_webview_window(crate::window::ISLAND_LABEL)
+        .ok_or("no island window")?;
+    crate::window::set_web_app_open(&island, true);
+    crate::window::allow_activation();
+    let _ = island.set_focus();
+    for other in web_apps(app) {
+        if other.label() != label {
+            let _ = other.hide();
+        }
+    }
+    let position = LogicalPosition::new(rect.x, rect.y);
+    let size = LogicalSize::new(rect.width, rect.height);
+    if let Some(webview) = app.get_webview(&label) {
+        webview.set_position(position).map_err(|e| e.to_string())?;
+        webview.set_size(size).map_err(|e| e.to_string())?;
+        webview.show().map_err(|e| e.to_string())?;
+        let _ = webview.set_focus();
+        return Ok(());
+    }
+    let window = app
+        .get_window(crate::window::ISLAND_LABEL)
+        .ok_or("no island window")?;
+    // `add_child` waits for the main thread: building it from a command
+    // running there would deadlock, so build from another thread.
     std::thread::spawn(move || {
-        if let Err(e) = create(&app, &label, url, &title) {
-            log::warn!("web app window: {e}");
+        let builder = WebviewBuilder::new(&label, WebviewUrl::External(url)).on_new_window(
+            |url, _features| {
+                if url.scheme() == "https" || url.scheme() == "http" {
+                    crate::settings::open_url(url.as_str());
+                }
+                NewWindowResponse::Deny
+            },
+        );
+        match window.add_child(builder, position, size) {
+            Ok(webview) => {
+                let _ = webview.set_focus();
+            }
+            Err(e) => log::warn!("web app {label}: {e}"),
         }
     });
     Ok(())
 }
 
-fn create(app: &AppHandle, label: &str, url: Url, title: &str) -> tauri::Result<()> {
-    let win = WebviewWindowBuilder::new(app, label, WebviewUrl::External(url))
-        .title(title)
-        .inner_size(SIZE.0, SIZE.1)
-        .min_inner_size(360.0, 420.0)
-        .resizable(true)
-        .visible(false)
-        .on_new_window(|url, _features| {
-            if url.scheme() == "https" || url.scheme() == "http" {
-                crate::settings::open_url(url.as_str());
-            }
-            NewWindowResponse::Deny
-        })
-        .build()?;
-    place(app, &win);
-    // The close button hides: the chat is still there next time.
-    let hide = win.clone();
-    win.on_window_event(move |event| {
-        if let WindowEvent::CloseRequested { api, .. } = event {
-            api.prevent_close();
-            let _ = hide.hide();
-        }
-    });
-    win.show()?;
-    win.set_focus()
+/// Hides every web app (the panel closed); the island stops taking the keyboard.
+pub fn hide(app: &AppHandle) {
+    for webview in web_apps(app) {
+        let _ = webview.hide();
+    }
+    if let Some(island) = app.get_webview_window(crate::window::ISLAND_LABEL) {
+        crate::window::set_web_app_open(&island, false);
+    }
 }
 
-/// Centered under the island, on the island's screen.
-fn place(app: &AppHandle, win: &WebviewWindow) {
-    let Some(island) = app.get_webview_window(crate::window::ISLAND_LABEL) else {
-        return;
-    };
-    let (Ok(Some(monitor)), Ok(pos), Ok(size), Ok(own)) = (
-        island.current_monitor(),
-        island.outer_position(),
-        island.outer_size(),
-        win.outer_size(),
-    ) else {
-        return;
-    };
-    let area = monitor.work_area();
-    let scale = monitor.scale_factor();
-    let center = pos.x + size.width as i32 / 2;
-    let left = area.position.x;
-    let right = area.position.x + area.size.width as i32 - own.width as i32;
-    let x = (center - own.width as i32 / 2).clamp(left, right.max(left));
-    let y = area.position.y + (TOP * scale) as i32;
-    let _ = win.set_position(PhysicalPosition::new(x, y));
+/// Lets the web app take the keyboard: activates the island, then focuses it.
+pub fn focus(app: &AppHandle, id: &str) -> Result<(), String> {
+    let webview = app.get_webview(&label_of(id)?).ok_or("not open")?;
+    if let Some(island) = app.get_webview_window(crate::window::ISLAND_LABEL) {
+        crate::window::allow_activation();
+        let _ = island.set_focus();
+    }
+    webview.set_focus().map_err(|e| e.to_string())
+}
+
+/// Back, reload, or the page's address (to open it in the browser).
+pub fn command(app: &AppHandle, id: &str, what: &str) -> Result<Option<String>, String> {
+    let webview = app.get_webview(&label_of(id)?).ok_or("not open")?;
+    match what {
+        "back" => webview.eval("history.back()").map(|_| None),
+        "reload" => webview.reload().map(|_| None),
+        "url" => webview.url().map(|u| Some(u.to_string())),
+        _ => return Err("unknown".into()),
+    }
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn labels_only_from_plain_ids() {
+        assert_eq!(label_of("chatgpt").unwrap(), "webapp-chatgpt");
+        assert!(label_of("").is_err());
+        assert!(label_of("../x").is_err());
+        assert!(label_of("a b").is_err());
+    }
 }

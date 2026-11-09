@@ -543,7 +543,7 @@
       title: "KI-Apps",
       desc: "ChatGPT, Claude, Gemini und mehr als Knöpfe in der Insel. Pro App wählbar: in der Insel, im Browser oder in der Desktop-App.",
       refresh: "Neu suchen",
-      hint: "Insel: die Web-App öffnet sich in einem eigenen Fenster direkt unter der Insel. Du meldest dich dort einmal an, danach bleibst du angemeldet. Schliessen versteckt das Fenster nur, dein Chat bleibt erhalten. Ein zweiter Klick auf den Knopf blendet es wieder aus. Auto: die Desktop-App, wenn installiert, sonst der Browser. Rechtsklick auf einen Knopf öffnet die App im Browser (oder in der Insel, wenn sie sonst im Browser aufgeht). Klappt die Anmeldung in der Insel nicht (z. B. mit Google), nimm „Browser“.",
+      hint: "Insel: die Web-App öffnet sich direkt in der Insel (Reiter „KI-Apps“). Du meldest dich dort einmal an, danach bleibst du angemeldet. Die Insel bleibt offen, bis du oben auf ✕ klickst; dein Chat bleibt erhalten. Auto: die Desktop-App, wenn installiert, sonst der Browser. Rechtsklick auf einen Knopf öffnet die App im Browser (oder in der Insel, wenn sie sonst im Browser aufgeht). Klappt die Anmeldung in der Insel nicht (z. B. mit Google), nimm „Browser“.",
       tooltipSwap: "Öffnet {where} · Rechtsklick: {other}",
       mode: {
         off: "Aus",
@@ -603,6 +603,17 @@
       notFound: "Keine Haltestelle mit diesem Namen gefunden.",
       change: "Andere Haltestelle wählen",
     },
+  },
+
+  webapps: {
+    title: "KI-Apps",
+    loading: "{name} wird geladen…",
+    failed: "Konnte nicht geöffnet werden. Neu laden oder im Browser öffnen.",
+    hint: "Wähle eine App: sie öffnet sich hier in der Insel. Welche Apps erscheinen, stellst du im Schnellstart ein.",
+    back: "Zurück",
+    reload: "Neu laden",
+    browser: "Im Browser öffnen",
+    close: "Schliessen",
   },
 
   picker: {

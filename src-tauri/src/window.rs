@@ -21,7 +21,7 @@ pub const FULLSCREEN_EVENT: &str = "island://fullscreen";
 pub const RECENTER_EVENT: &str = "island://recenter";
 
 /// Strip height in logical pixels (fits the tallest expanded panel + shadow).
-pub const STRIP_HEIGHT: f64 = 480.0;
+pub const STRIP_HEIGHT: f64 = 720.0;
 
 /// The last window in front that wasn't one of ours: what "ask about the
 /// screen" captures, and where focus goes back to after typing in the island.
@@ -75,7 +75,9 @@ pub fn allow_activation() {
 
 #[cfg(windows)]
 fn activation_allowed() -> bool {
-    FILE_DRAG.load(Ordering::Relaxed) || tick_ms() < ACTIVATE_UNTIL.load(Ordering::Relaxed)
+    FILE_DRAG.load(Ordering::Relaxed)
+        || WEB_APP.load(Ordering::Relaxed)
+        || tick_ms() < ACTIVATE_UNTIL.load(Ordering::Relaxed)
 }
 
 /// Files are being dragged in from another app. OLE refuses to drop on a
@@ -112,6 +114,41 @@ fn set_file_drag(win: &WebviewWindow, on: bool) {
 #[cfg(not(windows))]
 fn set_file_drag(_: &WebviewWindow, on: bool) {
     FILE_DRAG.store(on, Ordering::Relaxed);
+}
+
+/// A web app (ChatGPT, Claude…) is open inside the island: it needs the
+/// keyboard, so meanwhile clicks may activate the island.
+static WEB_APP: AtomicBool = AtomicBool::new(false);
+
+#[cfg(windows)]
+pub fn set_web_app_open(win: &WebviewWindow, on: bool) {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{
+        GWL_EXSTYLE, GetWindowLongW, SetWindowLongW, WS_EX_NOACTIVATE,
+    };
+
+    if WEB_APP.swap(on, Ordering::Relaxed) == on {
+        return;
+    }
+    let Ok(hwnd) = win.hwnd() else {
+        return;
+    };
+    // Off: the subclass filter puts `WS_EX_NOACTIVATE` back on this rewrite.
+    unsafe {
+        let hwnd = HWND(hwnd.0);
+        let style = GetWindowLongW(hwnd, GWL_EXSTYLE);
+        let style = if on {
+            style & !(WS_EX_NOACTIVATE.0 as i32)
+        } else {
+            style
+        };
+        SetWindowLongW(hwnd, GWL_EXSTYLE, style);
+    }
+}
+
+#[cfg(not(windows))]
+pub fn set_web_app_open(_: &WebviewWindow, on: bool) {
+    WEB_APP.store(on, Ordering::Relaxed);
 }
 
 #[cfg(windows)]
@@ -447,7 +484,7 @@ unsafe extern "system" fn overlay_proc(
                 change.styleNew &= !(WS_CAPTION.0 | WS_SYSMENU.0);
             } else if which == GWL_EXSTYLE.0 {
                 change.styleNew = (change.styleNew | WS_EX_TOOLWINDOW.0) & !WS_EX_APPWINDOW.0;
-                if !FILE_DRAG.load(Ordering::Relaxed) {
+                if !FILE_DRAG.load(Ordering::Relaxed) && !WEB_APP.load(Ordering::Relaxed) {
                     change.styleNew |= WS_EX_NOACTIVATE.0;
                 }
             }

@@ -6,6 +6,7 @@
  * installed, else the browser).
  */
 import { useCallback, useEffect, useState } from "react";
+import { createStore } from "../../core/island";
 import { type SettingDef, useSetting } from "../../core/settings";
 import { errorText, tools } from "../tools/bridge";
 
@@ -119,7 +120,11 @@ export function useInstalledApps() {
 
 export type AiTarget = { kind: "island" | "web" } | { kind: "app"; appId: string };
 
-/** Where a click goes: the island's own web window, the browser, or the desktop app. */
+/** The web app shown inside the island (the "AI apps" tab), if any. */
+export const islandWebApp = createStore<string | null>(null);
+export const WEBAPPS_MODULE = "webapps";
+
+/** Where a click goes: inside the island, the browser, or the desktop app. */
 export function resolve(app: AiApp, mode: AiMode, installed: Installed | null): AiTarget {
 	if (mode === "island") return { kind: "island" };
 	const appId = installed?.[app.id];
@@ -127,19 +132,30 @@ export function resolve(app: AiApp, mode: AiMode, installed: Installed | null): 
 	return { kind: "web" };
 }
 
-/** What a right click opens: the browser, or the island's window when a click already opens the browser. */
+/** What a right click opens: the browser, or the island when a click already opens the browser. */
 export function alternative(target: AiTarget): AiTarget {
 	return target.kind === "web" ? { kind: "island" } : { kind: "web" };
 }
 
-/** Opens it the way `resolve` says, or the other way with `swap` (right click). */
-export async function openAi(app: AiApp, mode: AiMode, installed: Installed | null, swap = false) {
+/**
+ * Opens it the way `resolve` says, or the other way with `swap` (right
+ * click). `showInIsland` switches the island to the AI apps tab.
+ */
+export async function openAi(
+	app: AiApp,
+	mode: AiMode,
+	installed: Installed | null,
+	showInIsland: () => void,
+	swap = false,
+) {
 	const first = resolve(app, mode, installed);
 	const target = swap ? alternative(first) : first;
 	try {
 		if (target.kind === "app") await tools("open_app", { appId: target.appId });
-		else if (target.kind === "island") await tools("open_webapp", { id: app.id, url: app.url, title: app.name });
-		else await tools("open_target", { target: app.url });
+		else if (target.kind === "island") {
+			islandWebApp.set(app.id);
+			showInIsland();
+		} else await tools("open_target", { target: app.url });
 	} catch (e) {
 		// The app is gone (uninstalled since the last look): fall back to the website.
 		if (target.kind === "app") await tools("open_target", { target: app.url });
