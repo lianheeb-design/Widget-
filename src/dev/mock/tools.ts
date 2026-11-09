@@ -77,6 +77,12 @@ export const tools = defineMock({
 								{ id: "8506121", name: "St. Gallen Haggen" },
 							],
 						},
+			installed_apps: () =>
+				wait(600, [
+					{ name: "ChatGPT", appId: "OpenAI.Codex_2p2nqsd0c76g0!App" },
+					{ name: "Claude", appId: "Claude_pzs8sxrjxfjjc!Claude" },
+				]),
+			open_app: () => null,
 			alarm_start: () => null,
 			alarm_stop: () => null,
 			alarm_test: () => null,

@@ -539,6 +539,33 @@
     webHint: "Webseiten: die ganze Adresse mit https:// einfügen",
     addButton: "Hinzufügen",
     remove: "Entfernen",
+    ai: {
+      title: "KI-Apps",
+      desc: "ChatGPT, Claude, Gemini und mehr als Knöpfe in der Insel. Pro App wählbar: Webseite oder Desktop-App.",
+      refresh: "Neu suchen",
+      hint: "Automatisch öffnet die Desktop-App, wenn sie installiert ist, sonst die Webseite. Mit Rechtsklick auf einen Knopf in der Insel öffnest du die andere Variante.",
+      tooltip: "Öffnet {where}",
+      tooltipSwap: "Öffnet {where} · Rechtsklick: {other}",
+      mode: {
+        off: "Aus",
+        auto: "Automatisch",
+        web: "Web",
+        app: "App",
+      },
+      status: {
+        checking: "Suche die Desktop-App…",
+        installed: "Desktop-App installiert",
+        missing: "Keine Desktop-App gefunden: öffnet die Webseite",
+      },
+      where: {
+        app: "die Desktop-App",
+        web: "die Webseite",
+      },
+      badge: {
+        app: "App",
+        web: "Web",
+      },
+    },
   },
 
   countdown: {

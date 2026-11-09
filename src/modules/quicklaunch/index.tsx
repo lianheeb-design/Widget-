@@ -13,6 +13,8 @@ import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { newId } from "../shared";
 import { errorText, tools } from "../tools/bridge";
+import { AiSettings } from "./AiSettings";
+import { openAi, resolve, useAiButtons, useInstalledApps } from "./ai";
 
 const ACCENT = "#BF5AF2";
 
@@ -29,11 +31,16 @@ const isWeb = (target: string) => /^https?:\/\//i.test(target);
 const guessEmoji = (target: string) =>
 	isWeb(target) ? "🌐" : /\.(exe|lnk|bat|cmd)$/i.test(target) ? "🚀" : /\.[a-z0-9]{1,5}$/i.test(target) ? "📄" : "📁";
 
+const tile =
+	"relative flex h-[72px] flex-col items-center justify-center gap-1.5 rounded-[18px] bg-white/7 px-1.5 transition-[background,transform] hover:bg-white/12 active:scale-95";
+
 function QuickPanel() {
 	const t = useT();
 	const list = useSetting(buttons);
+	const ai = useAiButtons();
+	const { installed } = useInstalledApps();
 	const [error, setError] = useState<string | null>(null);
-	if (!list.length) {
+	if (!list.length && !ai.length) {
 		return (
 			<div
 				className="flex h-full flex-col items-center justify-center gap-2 text-center"
@@ -54,12 +61,48 @@ function QuickPanel() {
 	return (
 		<div className="flex h-full flex-col gap-1.5 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="grid min-h-0 flex-1 grid-cols-5 content-start gap-2 overflow-y-auto" data-scroll>
+				{ai.map(({ app, mode }) => {
+					const where = resolve(app, mode, installed).kind;
+					const other = where === "app" ? "web" : installed?.[app.id] ? "app" : null;
+					return (
+						<button
+							type="button"
+							key={`ai-${app.id}`}
+							title={
+								other
+									? t("quick.ai.tooltipSwap", {
+											where: t(`quick.ai.where.${where}`),
+											other: t(`quick.ai.where.${other}`),
+										})
+									: t("quick.ai.tooltip", { where: t(`quick.ai.where.${where}`) })
+							}
+							className={tile}
+							onClick={() =>
+								openAi(app, mode, installed)
+									.then(() => setError(null))
+									.catch(() => setError(t("quick.failed")))
+							}
+							onContextMenu={(e) => {
+								e.preventDefault();
+								openAi(app, mode, installed, true)
+									.then(() => setError(null))
+									.catch(() => setError(t("quick.failed")));
+							}}
+						>
+							<span className="text-[24px] leading-none">{app.emoji}</span>
+							<span className="max-w-full truncate text-[11.5px] font-[650] text-text-dim">{app.name}</span>
+							<span className="absolute top-1.5 right-2 text-[9px] font-bold tracking-[0.04em] text-text-faint uppercase">
+								{t(`quick.ai.badge.${where}`)}
+							</span>
+						</button>
+					);
+				})}
 				{list.map((b) => (
 					<button
 						type="button"
 						key={b.id}
 						title={b.target}
-						className="flex h-[72px] flex-col items-center justify-center gap-1.5 rounded-[18px] bg-white/7 px-1.5 transition-[background,transform] hover:bg-white/12 active:scale-95"
+						className={tile}
 						onClick={() =>
 							tools("open_target", { target: b.target })
 								.then(() => setError(null))
@@ -119,6 +162,8 @@ function QuickSettings() {
 
 	return (
 		<>
+			<AiSettings />
+			<Divider />
 			<Block>
 				<Row label={t("quick.list")} desc={t("quick.listDesc")} />
 				{list.map((b, i) => (
@@ -218,7 +263,7 @@ export const quickLaunchModule: IslandModule = {
 	settingsIcon: <RocketIcon size={15} />,
 	SettingsSection: QuickSettings,
 	useView(): ModuleView {
-		const count = useSetting(buttons).length;
+		const count = useSetting(buttons).length + useAiButtons().length;
 		return {
 			active: false,
 			priority: 0,

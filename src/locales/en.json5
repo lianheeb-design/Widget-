@@ -562,6 +562,33 @@
     webHint: "Websites: paste the full address starting with https://",
     addButton: "Add",
     remove: "Remove",
+    ai: {
+      title: "AI apps",
+      desc: "ChatGPT, Claude, Gemini and more as buttons in the island. Choose per app: the website or the desktop app.",
+      refresh: "Look again",
+      hint: "Automatic opens the desktop app when it is installed, otherwise the website. Right-click a button in the island to open the other one.",
+      tooltip: "Opens {where}",
+      tooltipSwap: "Opens {where} · right-click: {other}",
+      mode: {
+        off: "Off",
+        auto: "Automatic",
+        web: "Web",
+        app: "App",
+      },
+      status: {
+        checking: "Looking for the desktop app…",
+        installed: "Desktop app installed",
+        missing: "No desktop app found: opens the website",
+      },
+      where: {
+        app: "the desktop app",
+        web: "the website",
+      },
+      badge: {
+        app: "App",
+        web: "Web",
+      },
+    },
   },
 
   countdown: {

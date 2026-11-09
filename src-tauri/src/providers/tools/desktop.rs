@@ -77,6 +77,24 @@ pub fn action(action: &str, payload: &Value) -> Option<Result<Value, String>> {
             imp::set_dark_mode(payload["on"].as_bool().unwrap_or(true)).map(|_| Value::Null)
         }
         "transit" => transit(payload),
+        "installed_apps" => {
+            let names: Vec<String> = payload["names"]
+                .as_array()
+                .map(|list| {
+                    list.iter()
+                        .filter_map(|n| n.as_str().map(str::to_owned))
+                        .collect()
+                })
+                .unwrap_or_default();
+            Ok(json!(apps::installed(&names)))
+        }
+        "open_app" => {
+            let id = payload["appId"].as_str().unwrap_or_default().trim();
+            if id.is_empty() || id.chars().any(char::is_control) {
+                return Some(Err("bad app id".into()));
+            }
+            imp::open(&format!("shell:AppsFolder\\{id}")).map(|_| Value::Null)
+        }
         "alarm_start" => {
             alarm::start(tone_of(payload));
             Ok(Value::Null)
@@ -98,6 +116,100 @@ pub fn action(action: &str, payload: &Value) -> Option<Result<Value, String>> {
         }
         _ => return None,
     })
+}
+
+/// Desktop apps in the Start menu (Store and classic ones alike), found by
+/// their name, so the quick launch can open e.g. the ChatGPT or Claude app
+/// instead of the website.
+mod apps {
+    use serde::{Deserialize, Serialize};
+
+    #[derive(Deserialize, Serialize, Clone, Debug, PartialEq)]
+    pub struct StartApp {
+        #[serde(rename(deserialize = "Name", serialize = "name"))]
+        pub name: String,
+        #[serde(rename(deserialize = "AppID", serialize = "appId"))]
+        pub app_id: String,
+    }
+
+    /// The Start menu apps whose name is one of `names` (ignoring case).
+    pub fn installed(names: &[String]) -> Vec<StartApp> {
+        if names.is_empty() {
+            return Vec::new();
+        }
+        let wanted: Vec<String> = names.iter().map(|n| n.to_lowercase()).collect();
+        start_apps()
+            .into_iter()
+            .filter(|app| wanted.contains(&app.name.to_lowercase()))
+            .collect()
+    }
+
+    /// `[{"Name":…,"AppID":…}]` from PowerShell; one app comes as a lone object.
+    pub fn parse(json: &str) -> Vec<StartApp> {
+        let json = json.trim();
+        if json.is_empty() {
+            return Vec::new();
+        }
+        serde_json::from_str::<Vec<StartApp>>(json)
+            .or_else(|_| serde_json::from_str::<StartApp>(json).map(|app| vec![app]))
+            .unwrap_or_default()
+    }
+
+    #[cfg(windows)]
+    fn start_apps() -> Vec<StartApp> {
+        use std::os::windows::process::CommandExt;
+        use std::process::Command;
+
+        let script = "[Console]::OutputEncoding = [Text.Encoding]::UTF8; \
+                      Get-StartApps | Select-Object Name, AppID | ConvertTo-Json -Compress";
+        let Ok(out) = Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-Command", script])
+            .creation_flags(super::super::CREATE_NO_WINDOW)
+            .output()
+        else {
+            return Vec::new();
+        };
+        if !out.status.success() {
+            return Vec::new();
+        }
+        parse(&String::from_utf8_lossy(&out.stdout))
+    }
+
+    #[cfg(not(windows))]
+    fn start_apps() -> Vec<StartApp> {
+        Vec::new()
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn parses_a_list_and_a_single_app() {
+            let list = parse(
+                r#"[{"Name":"Claude","AppID":"Claude_pzs8sxrjxfjjc!Claude"},{"Name":"ChatGPT","AppID":"OpenAI.Codex_2p2nqsd0c76g0!App"}]"#,
+            );
+            assert_eq!(list.len(), 2);
+            assert_eq!(list[0].name, "Claude");
+            assert_eq!(list[1].app_id, "OpenAI.Codex_2p2nqsd0c76g0!App");
+            let one = parse(r#"{"Name":"Gemini","AppID":"Google.Gemini!App"}"#);
+            assert_eq!(one.len(), 1);
+            assert!(parse("").is_empty());
+            assert!(parse("not json").is_empty());
+        }
+
+        #[test]
+        fn serializes_for_the_ui() {
+            let app = StartApp {
+                name: "Claude".into(),
+                app_id: "Claude!App".into(),
+            };
+            assert_eq!(
+                serde_json::to_string(&app).unwrap(),
+                r#"{"name":"Claude","appId":"Claude!App"}"#
+            );
+        }
+    }
 }
 
 /// Alarm tone 1–10 (Windows' `Alarm01.wav` … `Alarm10.wav`).
@@ -272,7 +384,8 @@ mod imp {
         }
         let web = target.starts_with("https://") || target.starts_with("http://");
         let settings = target.starts_with("ms-settings:");
-        if !web && !settings && !std::path::Path::new(target).exists() {
+        let start_app = target.starts_with("shell:AppsFolder\\");
+        if !web && !settings && !start_app && !std::path::Path::new(target).exists() {
             return Err("notFound".into());
         }
         let result = unsafe {
