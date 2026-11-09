@@ -48,7 +48,10 @@ export function useIslandController(modules: IslandModule[]) {
 		onClose: tabMemory.onIslandClose,
 	});
 
-	const { primary, secondary } = useBusiest(entries);
+	// Which activity the collapsed island shows first, when several run (a train and a
+	// timer): the one last looked at in the open island, or picked with the wheel.
+	const [front, setFront] = useState<string | null>(null);
+	const { primary, secondary, activeIds } = useBusiest(entries, front);
 	const forceExpanded = forcedId !== null;
 	const mode = islandMode({
 		swallowed: settings[ISLAND_HIDDEN_KEY] === true,
@@ -102,11 +105,32 @@ export function useIslandController(modules: IslandModule[]) {
 	useTauriEvent<string>("island://open-module", (id) => enabled(id) && expand(id));
 	useTauriEvent<boolean>("island://hover", hover.onPointer);
 
-	const onWheel = useWheelTabs(
+	const wheelTabs = useWheelTabs(
 		mode === "expanded",
 		tabs.map((e) => e.module.id),
 		focusedId,
 		selectTab,
+	);
+
+	// Looking at a running activity in the open island brings it to the front.
+	const focusedActive = mode === "expanded" && focusedId !== null && activeIds.includes(focusedId);
+	useEffect(() => {
+		if (focusedActive) setFront(focusedId);
+	}, [focusedActive, focusedId]);
+
+	// The wheel over the collapsed island flips through the running activities.
+	const lastFlip = useRef(0);
+	const primaryId = primary?.module.id;
+	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on the joined ids so a new array with the same activities keeps the callback
+	const onWheel = useCallback(
+		(e: WheelEvent) => {
+			if (mode !== "compact" || activeIds.length < 2) return wheelTabs(e);
+			if (Math.abs(e.deltaY) < 4 || performance.now() - lastFlip.current < WHEEL_STEP_MS) return;
+			lastFlip.current = performance.now();
+			const i = Math.max(0, activeIds.indexOf(primaryId ?? ""));
+			setFront(activeIds[(i + Math.sign(e.deltaY) + activeIds.length) % activeIds.length]);
+		},
+		[mode, activeIds.join(), primaryId, wheelTabs],
 	);
 
 	return {
@@ -146,8 +170,8 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
 	);
 }
 
-/** The two active modules with the highest priority. */
-function useBusiest(entries: ModuleEntry[]) {
+/** The two active modules with the highest priority (`front` first, while it is active). */
+function useBusiest(entries: ModuleEntry[], front: string | null) {
 	// biome-ignore lint/correctness/useExhaustiveDependencies: keyed on a signature so a new entries array with the same views keeps the memo
 	const active = useMemo(
 		() => entries.filter((e) => e.view.active).sort((a, b) => b.view.priority - a.view.priority),
@@ -155,7 +179,9 @@ function useBusiest(entries: ModuleEntry[]) {
 	);
 	// Looked up again so the views are this render's, not the memoized ones.
 	const fresh = (e?: ModuleEntry) => (e ? entries.find((x) => x.module.id === e.module.id) : undefined);
-	return { primary: fresh(active[0]), secondary: fresh(active[1]) };
+	const first = active.find((e) => e.module.id === front);
+	const ordered = first ? [first, ...active.filter((e) => e !== first)] : active;
+	return { primary: fresh(ordered[0]), secondary: fresh(ordered[1]), activeIds: active.map((e) => e.module.id) };
 }
 
 /** Fullscreen apps hide the island. */

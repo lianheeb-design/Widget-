@@ -56,6 +56,8 @@ export interface ModuleView {
 	showWhenOff?: boolean;
 	/** A new value bursts confetti out of the island (a timer or focus round done). */
 	celebrateKey?: string;
+	/** Quick actions in the island's right-click menu (e.g. "Stop the live view"). */
+	menu?: { label: string; onSelect: () => void; danger?: boolean }[];
 }
 
 export interface IslandModule {

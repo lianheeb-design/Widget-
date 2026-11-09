@@ -220,6 +220,12 @@
     now: "Jetzt",
     rain: "{n}% Regen",
     updated: "Aktualisiert {time}",
+    rainSoon: "Regen kommt",
+    rainIn: "in {m} Min",
+    rainAlert: {
+      label: "Regen-Warnung",
+      desc: "Kommt in der nächsten Stunde Regen, steht es oben in der Insel.",
+    },
     code: {
       clear: "Klar",
       mainlyClear: "Meist klar",
@@ -463,6 +469,30 @@
     },
   },
 
+  menu: {
+    whatsNew: "Was ist neu?",
+    settings: "Einstellungen",
+    stopTimer: "Timer stoppen",
+  },
+
+  whatsnew: {
+    title: "Was ist neu",
+    heading: "Neu in Version {version}",
+    short: "Neu in {version}",
+    open: "Ansehen",
+    done: "Alles klar",
+    hide: "Ausblenden",
+    none: "Für diese Version gibt es keine Hinweise.",
+    v070: {
+      live: "Zug live verfolgen: Öffne bei Abfahrten → Verbindung eine Verbindung und klicke „Live verfolgen“. Oben in der Insel siehst du dann, in wie vielen Minuten dein Zug fährt (mit Verspätung), wo du umsteigst und wann du ankommst. Kurz vor der Abfahrt meldet sich die Insel.",
+      rain: "Regen-Warnung: Kommt in der nächsten Stunde Regen, steht es oben in der Insel.",
+      countdown: "Countdown oben: Klicke im Countdown auf die Stecknadel, dann steht er dauerhaft in der Insel.",
+      switch: "Mehrere Anzeigen: Was du zuletzt angeschaut hast, steht vorne. Mit dem Mausrad über der Insel wechselst du.",
+      menu: "Rechtsklick auf die Insel öffnet ein Schnellmenü (z. B. Live-Anzeige beenden, Timer stoppen).",
+      speed: "Die Insel braucht weniger Leistung, und KI-Apps schlafen nach 10 Minuten ohne Benutzung ein.",
+    },
+  },
+
   update: {
     title: "Updates",
     short: "Update {version}",
@@ -642,6 +672,9 @@
     tomorrow: "Morgen",
     inDays: "in {n} Tagen",
     ago: "vor {n} Tagen",
+    short: "in {n} T.",
+    pin: "Oben in der Insel anzeigen",
+    unpin: "Nicht mehr oben anzeigen",
     showBubble: {
       label: "Tage-Blase",
       desc: "Zeigt die Tage bis zum nächsten Datum neben der Insel.",
@@ -667,6 +700,7 @@
     view: {
       departures: "Abfahrten",
       connections: "Verbindung",
+      live: "Live",
     },
     from: "Von",
     to: "Nach",
@@ -684,6 +718,25 @@
     durationLong: "{h} h {m}",
     changes: "{n} Umst.",
     direct: "direkt",
+    live: {
+      start: "Live verfolgen",
+      stop: "Live-Anzeige beenden",
+      hint: "Zeigt die Verbindung oben in der Insel an, bis du ankommst.",
+      departsIn: "Abfahrt",
+      go: "Los, dein Zug fährt gleich!",
+      arriveIn: "Ankunft in {to}",
+      nextStop: "Umsteigen in {to}",
+      changeAt: "Umsteigen in {at}, Weiterfahrt",
+      arrived: "Angekommen",
+      now: "jetzt",
+      min: "in {m} Min",
+      hours: "in {h} h {m}",
+      alert: {
+        label: "Erinnerung vor der Abfahrt",
+        desc: "So viele Minuten vor der Abfahrt klappt die Insel kurz auf und pulsiert rot.",
+        off: "Aus",
+      },
+    },
   },
 
   webapps: {

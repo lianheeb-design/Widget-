@@ -9,6 +9,7 @@ import {
 	ArrowRightIcon,
 	ChevronRightIcon,
 	FootprintsIcon,
+	RadioIcon,
 	StarIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -17,6 +18,7 @@ import { useLocale, useT } from "../../core/i18n";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import { IslandPlacePicker } from "../picker";
 import { LineBadge, type Station, transit, useStationSearch, ViewSwitch } from "./common";
+import { liveTrip, startLive, stopLive, tripOf } from "./live";
 
 const COUNT = 4;
 const REFRESH = 60_000;
@@ -114,19 +116,43 @@ function StopButton({
 	);
 }
 
-function Details({ connection, onBack }: { connection: Connection; onBack: () => void }) {
+function Details({ connection, route, onBack }: { connection: Connection; route: Route; onBack: () => void }) {
 	const t = useT();
 	const clock = useClock();
+	const live = useSetting(liveTrip);
+	const followed =
+		live?.dep === connection.from.departureTimestamp && live.from.id === route.from?.id && live.to.id === route.to?.id;
 	return (
 		<div className="flex min-h-0 flex-1 flex-col gap-1">
-			<button
-				type="button"
-				className="flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 text-[12px] font-[650] text-text-dim hover:bg-white/8 hover:text-text"
-				onClick={onBack}
-			>
-				<ArrowLeftIcon size={12} />
-				{t("transit.back")}
-			</button>
+			<div className="flex items-center justify-between gap-2">
+				<button
+					type="button"
+					className="flex w-fit items-center gap-1 rounded-full px-1.5 py-0.5 text-[12px] font-[650] text-text-dim hover:bg-white/8 hover:text-text"
+					onClick={onBack}
+				>
+					<ArrowLeftIcon size={12} />
+					{t("transit.back")}
+				</button>
+				{route.from && route.to && (
+					<button
+						type="button"
+						title={t("transit.live.hint")}
+						className="flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] font-bold transition-[background]"
+						style={
+							followed
+								? { color: "#ff8a80", background: "rgba(255,255,255,0.06)" }
+								: { color: "#fff", background: "#EB0000" }
+						}
+						onClick={() => {
+							if (followed) stopLive();
+							else if (route.from && route.to) startLive(tripOf(connection, route.from, route.to));
+						}}
+					>
+						<RadioIcon size={12} />
+						{followed ? t("transit.live.stop") : t("transit.live.start")}
+					</button>
+				)}
+			</div>
 			<div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto" data-scroll>
 				{connection.sections.map((s) =>
 					s.journey ? (
@@ -168,6 +194,7 @@ export function ConnectionsView() {
 	const clock = useClock();
 	const current = useSetting(route);
 	const favs = useSetting(favorites);
+	const live = useSetting(liveTrip);
 	const [picking, setPicking] = useState<"from" | "to" | null>(null);
 	const [page, setPage] = useState(0);
 	const [rows, setRows] = useState<Connection[] | null>(null);
@@ -236,7 +263,7 @@ export function ConnectionsView() {
 	return (
 		<div className="flex h-full flex-col gap-1.5 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="flex items-center gap-1.5">
-				<ViewSwitch />
+				<ViewSwitch live={!!live} />
 				<StopButton station={current.from} placeholder={t("transit.from")} onClick={() => setPicking("from")} />
 				<button
 					type="button"
@@ -273,7 +300,7 @@ export function ConnectionsView() {
 				</div>
 			)}
 			{open ? (
-				<Details connection={open} onBack={() => setOpen(null)} />
+				<Details connection={open} route={current} onBack={() => setOpen(null)} />
 			) : (
 				<>
 					<div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto" data-scroll>

@@ -37,7 +37,7 @@ export const transit = <T,>(
 ) => tools<T>("transit", { kind, query });
 
 /** Which view the panel shows: the departures of one stop, or connections from A to B. */
-export type TransitView = "departures" | "connections";
+export type TransitView = "departures" | "connections" | "live";
 export const transitView = createStore<TransitView>("departures");
 
 /**
@@ -105,13 +105,14 @@ export function LineBadge({ category, number }: { category: string; number: stri
 	);
 }
 
-/** Tabs at the top of the panel: departures | connection. */
-export function ViewSwitch() {
+/** Tabs at the top of the panel: departures | connection (| live, while one is followed). */
+export function ViewSwitch({ live = false }: { live?: boolean }) {
 	const t = useT();
 	const view = transitView.use();
+	const views: TransitView[] = live ? ["live", "departures", "connections"] : ["departures", "connections"];
 	return (
 		<div className="flex flex-none gap-1">
-			{(["departures", "connections"] as const).map((v) => (
+			{views.map((v) => (
 				<button
 					key={v}
 					type="button"

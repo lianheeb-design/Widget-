@@ -9,6 +9,9 @@
 //! webviews only), so it can't call any command. Links that want a new
 //! window open in the default browser.
 
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::time::Duration;
+
 use serde::Deserialize;
 use tauri::webview::NewWindowResponse;
 use tauri::{
@@ -16,6 +19,12 @@ use tauri::{
 };
 
 const LABEL_PREFIX: &str = "webapp-";
+/// Hidden this long, the web apps are closed: a page like ChatGPT keeps running
+/// (and using the processor and memory) while hidden. Logins stay; next time the
+/// page loads anew.
+const SLEEP_AFTER: Duration = Duration::from_secs(10 * 60);
+/// Bumped on every show and hide: a pending sleep only runs if nothing happened since.
+static GENERATION: AtomicU64 = AtomicU64::new(0);
 
 /// Where the panel wants the web app, in CSS px of the island window.
 #[derive(Deserialize, Clone, Copy, Debug)]
@@ -55,6 +64,7 @@ pub fn show(app: &AppHandle, id: &str, url: &str, rect: Rect) -> Result<(), Stri
     let island = app
         .get_webview_window(crate::window::ISLAND_LABEL)
         .ok_or("no island window")?;
+    GENERATION.fetch_add(1, Ordering::Relaxed);
     crate::window::set_web_app_open(&island, true);
     crate::window::allow_activation();
     let _ = island.set_focus();
@@ -98,12 +108,29 @@ pub fn show(app: &AppHandle, id: &str, url: &str, rect: Rect) -> Result<(), Stri
 
 /// Hides every web app (the panel closed); the island stops taking the keyboard.
 pub fn hide(app: &AppHandle) {
-    for webview in web_apps(app) {
+    let open = web_apps(app);
+    for webview in &open {
         let _ = webview.hide();
     }
     if let Some(island) = app.get_webview_window(crate::window::ISLAND_LABEL) {
         crate::window::set_web_app_open(&island, false);
     }
+    if open.is_empty() {
+        return;
+    }
+    let generation = GENERATION.fetch_add(1, Ordering::Relaxed) + 1;
+    let app = app.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(SLEEP_AFTER);
+        if GENERATION.load(Ordering::Relaxed) != generation {
+            return;
+        }
+        for webview in web_apps(&app) {
+            if let Err(e) = webview.close() {
+                log::warn!("web app {}: {e}", webview.label());
+            }
+        }
+    });
 }
 
 /// Lets the web app take the keyboard: activates the island, then focuses it.

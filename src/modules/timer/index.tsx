@@ -192,6 +192,7 @@ export const timerModule: IslandModule = {
 							? stopwatchCompact
 							: alarm.compact,
 			ambient: alarm.ambient,
+			menu: timerShown ? [{ label: t("menu.stopTimer"), onSelect: timer.stop, danger: true }] : undefined,
 			expanded: alarm.ringingPanel ? (
 				alarm.ringingPanel
 			) : showAlarm ? (

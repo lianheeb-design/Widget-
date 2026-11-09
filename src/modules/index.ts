@@ -25,6 +25,7 @@ import { translateModule } from "./translate";
 import { updateModule } from "./update";
 import { weatherModule } from "./weather";
 import { webAppsModule } from "./webapps";
+import { whatsNewModule } from "./whatsnew";
 
 /**
  * Every module the island knows about, in tab order.
@@ -57,6 +58,7 @@ export const modules: IslandModule[] = [
 	gitModule,
 	reactionModule,
 	updateModule,
+	whatsNewModule,
 	githubModule,
 	hydrationModule,
 	monitorModule,

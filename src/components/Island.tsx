@@ -1,12 +1,12 @@
 import { motion } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { type MouseEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
 import { islandFill, SIZE_SCALE, useDesktop, useExtras, useLook } from "../core/extras";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
-import { useHitRects } from "../core/useHitRects";
+import { kickHitRects, useHitRects } from "../core/useHitRects";
 import { useIslandController } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
 import { modules } from "../modules";
@@ -17,6 +17,7 @@ import { islandContent } from "./island/content";
 import { Confetti, withMotion } from "./island/effects";
 import { ambientWidth, BUBBLE, BUBBLE_GAP, type Geo, geometry, variantOf } from "./island/geometry";
 import { launcherSize } from "./island/Launcher";
+import { QuickMenu } from "./island/QuickMenu";
 import { Rim } from "./island/Rim";
 import { Surface } from "./island/Surface";
 import { useIslandFileDrop } from "./island/useIslandFileDrop";
@@ -109,6 +110,31 @@ export function Island() {
 		[mode, ctl.tab, ctl.expand, ctl.collapse, ctl.keepOpen],
 	);
 
+	// Right-click: quick actions of what the island shows.
+	const [menuAt, setMenuAt] = useState<{ x: number; y: number } | null>(null);
+	const { keepOpen } = ctl;
+	const closeMenu = useCallback(() => {
+		setMenuAt(null);
+		keepOpen(false, "menu");
+	}, [keepOpen]);
+	const openMenu = (e: MouseEvent<HTMLElement>) => {
+		// Text fields and the like keep their own menu.
+		if ((e.target as Element).closest("input, textarea, select, [contenteditable]")) return;
+		e.preventDefault();
+		const box = e.currentTarget.getBoundingClientRect();
+		const zoom = box.width / e.currentTarget.offsetWidth || 1;
+		setMenuAt({ x: (e.clientX - box.left) / zoom, y: (e.clientY - box.top) / zoom });
+		keepOpen(true, "menu");
+	};
+	const shown = big ? [focused] : [primary, showSecondary ? secondary : undefined];
+	const menuItems = shown.flatMap((e) => e?.view.menu ?? []);
+
+	// The island is about to change shape: its clickable area must follow at once.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the dependencies are the triggers, not inputs
+	useEffect(() => {
+		kickHitRects();
+	}, [mode, g.width, g.height, menuAt, showSecondary, mini, drag.dragging]);
+
 	const content = mini ? { key: "mini", node: null } : islandContent(ctl, look, v);
 	const rim = windows ? <Rim look={look} /> : null;
 	const bubble = { transition: v.shellSpring, rim, onOpen: ctl.expand };
@@ -139,6 +165,7 @@ export function Island() {
 						onClickCapture={drag.onClickCapture}
 						onUpdate={drag.onShellUpdate}
 						onWheel={ctl.onWheel}
+						onContextMenu={openMenu}
 						initial={false}
 						animate={{
 							width: g.width,
@@ -183,6 +210,7 @@ export function Island() {
 						<Confetti trigger={celebrate} />
 						<AmbientBubbles entries={ctl.entries} visible={resting} shrunk={mode === "idle" && !windows} {...bubble} />
 						<SecondaryBubble entry={showSecondary ? secondary : undefined} {...bubble} />
+						<QuickMenu at={menuAt} items={menuItems} onWhatsNew={() => ctl.expand("whatsnew")} onClose={closeMenu} />
 					</motion.div>
 				</motion.div>
 			</div>

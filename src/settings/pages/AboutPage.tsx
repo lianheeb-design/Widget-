@@ -4,6 +4,7 @@ import { Button } from "../../components/ui/button";
 import { Card, Row } from "../../components/ui/card";
 import { command, providerAction } from "../../core/bridge";
 import { useT } from "../../core/i18n";
+import { ReleaseNotes } from "../../modules/whatsnew";
 
 type UpdateStatus =
 	| { state: "idle" | "checking" | "latest" | "dev" | "portable" | "store" | "error" | "hidden" }
@@ -76,6 +77,12 @@ export function AboutPage() {
 					</Button>
 				</Row>
 				<Row label={t("settings.about.license")} desc="GNU GPL v3.0"></Row>
+			</Card>
+			<Card>
+				<div className="flex flex-col gap-2.5 px-4 py-3.5">
+					<strong className="text-[13.5px]">{t("whatsnew.heading", { version: __APP_VERSION__ })}</strong>
+					<ReleaseNotes version={__APP_VERSION__} className="flex flex-col gap-2" />
+				</div>
 			</Card>
 		</>
 	);

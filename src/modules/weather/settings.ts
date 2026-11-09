@@ -19,6 +19,12 @@ export const weatherSettings = {
 		description: "weather.showBubble.desc",
 		default: false,
 	},
+	rainAlert: {
+		key: "weather.rainAlert",
+		label: "weather.rainAlert.label",
+		description: "weather.rainAlert.desc",
+		default: true,
+	},
 } satisfies Record<string, SettingDef>;
 
 /** Where the forecast is for. Changed by searching in the settings. */

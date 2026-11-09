@@ -1,6 +1,7 @@
-import { CalendarClockIcon, PlusIcon, XIcon } from "lucide-react";
+import { CalendarClockIcon, PinIcon, PinOffIcon, PlusIcon, XIcon } from "lucide-react";
 /** Countdowns: days left until dates the person cares about. */
 import { useState } from "react";
+import { cn } from "../../core/cn";
 import { useLocale, useT } from "../../core/i18n";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
@@ -18,6 +19,8 @@ interface Countdown {
 }
 
 const items: SettingDef<Countdown[]> = { key: "countdown.items", label: "countdown.title", default: [] };
+/** The countdown shown in the collapsed island, if any. */
+const pinned: SettingDef<string | null> = { key: "countdown.pinned", label: "countdown.pin", default: null };
 export const countdownSettings = {
 	showBubble: {
 		key: "countdown.showBubble",
@@ -43,6 +46,7 @@ function CountdownPanel() {
 	const locale = useLocale();
 	const now = useNow(60_000);
 	const list = useSetting(items);
+	const top = useSetting(pinned);
 	const [name, setName] = useState("");
 	const [date, setDate] = useState("");
 	const nameKeys = useKeyboard("countdown.name");
@@ -85,6 +89,17 @@ function CountdownPanel() {
 									{label} · {fmt.format(localDay(c.date))}
 								</span>
 							</div>
+							<button
+								type="button"
+								className={cn(
+									"grid size-6 place-items-center rounded-full hover:bg-white/10 hover:text-text",
+									top === c.id ? "text-[#FF375F]" : "text-text-faint opacity-0 group-hover:opacity-100",
+								)}
+								title={top === c.id ? t("countdown.unpin") : t("countdown.pin")}
+								onClick={() => setSetting(pinned, top === c.id ? null : c.id)}
+							>
+								{top === c.id ? <PinOffIcon size={12} /> : <PinIcon size={12} />}
+							</button>
 							<button
 								type="button"
 								className="grid size-6 place-items-center rounded-full text-text-faint opacity-0 group-hover:opacity-100 hover:bg-white/10 hover:text-text"
@@ -134,16 +149,42 @@ export const countdownModule: IslandModule = {
 	settingsIcon: <CalendarClockIcon size={15} />,
 	settings: Object.values(countdownSettings),
 	useView(): ModuleView {
+		const t = useT();
 		const list = useSetting(items);
 		const showBubble = useSetting(countdownSettings.showBubble);
-		const now = useNow(60 * 60_000);
+		const now = useNow(10 * 60_000);
+		const pinnedId = useSetting(pinned);
+		const pin = list.find((c) => c.id === pinnedId);
+		const pinDays = pin ? daysUntil(pin.date, now) : -1;
 		const next = list
 			.map((c) => daysUntil(c.date, now))
 			.filter((d) => d >= 0)
 			.sort((a, b) => a - b)[0];
 		return {
-			active: false,
-			priority: 0,
+			active: !!pin && pinDays >= 0,
+			priority: 2,
+			compact:
+				pin && pinDays >= 0
+					? {
+							left: (
+								<span className="flex min-w-0 items-center gap-2 text-[13px] font-[650]">
+									<CalendarClockIcon size={15} color={ACCENT} className="flex-none" />
+									<span className="truncate">{pin.name}</span>
+								</span>
+							),
+							right: (
+								<span className="text-[13px] font-bold whitespace-nowrap tabular-nums" style={{ color: ACCENT }}>
+									{pinDays === 0
+										? `${t("countdown.today")} 🎉`
+										: pinDays === 1
+											? t("countdown.tomorrow")
+											: t("countdown.short", { n: pinDays })}
+								</span>
+							),
+							width: 270,
+						}
+					: undefined,
+			menu: pin ? [{ label: t("countdown.unpin"), onSelect: () => setSetting(pinned, null) }] : undefined,
 			accent: ACCENT,
 			icon: <CalendarClockIcon size={15} color={ACCENT} />,
 			ambient:

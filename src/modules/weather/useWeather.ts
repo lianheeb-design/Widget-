@@ -32,6 +32,8 @@ export interface WeatherData {
 	sunrise: Date | null;
 	sunset: Date | null;
 	hours: WeatherHour[];
+	/** Precipitation (mm) per quarter hour, from now on: for the rain warning. */
+	rain15: { time: number; mm: number }[];
 	fetchedAt: number;
 }
 
@@ -57,6 +59,7 @@ interface Forecast {
 		is_day: number[];
 		precipitation_probability: (number | null)[];
 	};
+	minutely_15?: { time: string[]; precipitation: (number | null)[] };
 	daily: {
 		temperature_2m_max: number[];
 		temperature_2m_min: number[];
@@ -71,6 +74,8 @@ export function forecastUrl(place: WeatherPlace, unit: WeatherUnit) {
 		longitude: String(place.longitude),
 		current: "temperature_2m,apparent_temperature,weather_code,is_day,wind_speed_10m",
 		hourly: "temperature_2m,weather_code,is_day,precipitation_probability",
+		minutely_15: "precipitation",
+		forecast_minutely_15: "12",
 		daily: "temperature_2m_max,temperature_2m_min,sunrise,sunset",
 		timezone: "auto",
 		forecast_days: "2",
@@ -114,6 +119,10 @@ export function parseForecast(f: Forecast): WeatherData {
 		sunrise: f.daily.sunrise[0] ? localDate(f.daily.sunrise[0]) : null,
 		sunset: f.daily.sunset[0] ? localDate(f.daily.sunset[0]) : null,
 		hours,
+		rain15: (f.minutely_15?.time ?? []).map((t, i) => ({
+			time: localDate(t).getTime(),
+			mm: f.minutely_15?.precipitation[i] ?? 0,
+		})),
 		fetchedAt: Date.now(),
 	};
 }
@@ -182,3 +191,16 @@ export async function searchPlaces(name: string, language: string, count = 8): P
 
 /** "Canton, Country" under a place's name. */
 export const placeDetail = (place: WeatherPlace) => [place.region, place.country].filter(Boolean).join(", ");
+
+const QUARTER = 15 * 60_000;
+
+/**
+ * When rain starts within the hour (ms from `now`), or `null`: none coming,
+ * or it is raining already (then there's nothing to warn about).
+ */
+export function rainAhead(data: WeatherData, now: number): { inMs: number; at: number } | null {
+	const current = data.rain15.find((s) => s.time <= now && now < s.time + QUARTER);
+	if (current && current.mm >= 0.1) return null;
+	const next = data.rain15.find((s) => s.time > now && s.time - now <= 4 * QUARTER && s.mm >= 0.2);
+	return next ? { inMs: next.time - now, at: next.time } : null;
+}

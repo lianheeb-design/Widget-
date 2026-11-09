@@ -15,6 +15,7 @@ import {
 	useStationSearch,
 	ViewSwitch,
 } from "./common";
+import { liveTrip } from "./live";
 
 const REFRESH = 45_000;
 const ROWS = 5;
@@ -54,6 +55,7 @@ function Departures({ stop, onChangeStop }: { stop: Station; onChangeStop: () =>
 	const t = useT();
 	const locale = useLocale();
 	const now = useNow(15_000);
+	const live = useSetting(liveTrip);
 	const [rows, setRows] = useState<Departure[] | null>(null);
 	const [error, setError] = useState(false);
 	const id = stop.id;
@@ -87,7 +89,7 @@ function Departures({ stop, onChangeStop }: { stop: Station; onChangeStop: () =>
 	return (
 		<div className="flex h-full flex-col gap-1 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="flex items-center gap-2 text-[12.5px] font-[650] text-text-dim">
-				<ViewSwitch />
+				<ViewSwitch live={!!live} />
 				<button
 					type="button"
 					title={t("transit.station.change")}

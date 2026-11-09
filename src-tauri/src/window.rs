@@ -233,6 +233,9 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut pressed_inside = false;
         let mut file_drag = false;
         let mut web_app_had_focus = false;
+        // Where the window is and its scale: asking costs a round trip to the main
+        // thread, and they only change when the island moves to another screen.
+        let mut frame: Option<Frame> = None;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -254,10 +257,16 @@ pub fn spawn_hit_test(app: AppHandle) {
                     let _ = app.emit(FULLSCREEN_EVENT, fs);
                 }
             }
+            if frame.is_none() || tick.is_multiple_of(20) {
+                frame = Frame::of(&win).or(frame);
+            }
             tick = tick.wrapping_add(1);
             if tick.is_multiple_of(4) {
                 track_foreground(&app);
             }
+            let Some(frame) = frame else {
+                continue;
+            };
 
             let fg = foreground_window();
             let fg_changed = fg != last_fg;
@@ -286,7 +295,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             }
 
             let dragging = app.state::<DragState>().0.load(Ordering::Relaxed);
-            let over_island = cursor_inside(&app, &win, 0.0);
+            let over_island = cursor_inside(&app, frame, 0.0);
             let inside = island_interactive && (dragging || over_island);
 
             // A drag that started in another app (files from Explorer…). The
@@ -302,7 +311,7 @@ pub fn spawn_hit_test(app: AppHandle) {
             let drop_zone = island_interactive
                 && down
                 && !pressed_inside
-                && cursor_inside(&app, &win, DROP_MARGIN);
+                && cursor_inside(&app, frame, DROP_MARGIN);
             let dragging_in = down && !pressed_inside && (file_drag || drop_zone);
             if dragging_in != file_drag {
                 file_drag = dragging_in;
@@ -336,21 +345,44 @@ fn left_button_down() -> bool {
     false
 }
 
+/// The island window's top left corner (physical px) and its scale.
+#[derive(Clone, Copy)]
+struct Frame {
+    x: f64,
+    y: f64,
+    scale: f64,
+}
+
+impl Frame {
+    fn of(win: &WebviewWindow) -> Option<Self> {
+        let (Ok(origin), Ok(scale)) = (win.outer_position(), win.scale_factor()) else {
+            return None;
+        };
+        Some(Self {
+            x: origin.x as f64,
+            y: origin.y as f64,
+            scale,
+        })
+    }
+}
+
 /// Cursor over one of the frontend's rects, grown by `margin` CSS px.
-fn cursor_inside(app: &AppHandle, win: &WebviewWindow, margin: f64) -> bool {
+fn cursor_inside(app: &AppHandle, frame: Frame, margin: f64) -> bool {
     let Some((cx, cy)) = cursor_pos() else {
         return false;
     };
-    let (Ok(origin), Ok(scale)) = (win.outer_position(), win.scale_factor()) else {
-        return false;
-    };
+    let Frame {
+        x: ox,
+        y: oy,
+        scale,
+    } = frame;
     let rects = app.state::<HitState>();
     let rects = rects.0.lock().unwrap();
     rects.iter().any(|r| {
-        let left = origin.x as f64 + (r.x - margin) * scale;
-        let top = origin.y as f64 + (r.y - margin).max(0.0) * scale;
-        let right = origin.x as f64 + (r.x + r.width + margin) * scale;
-        let bottom = origin.y as f64 + (r.y + r.height + margin) * scale;
+        let left = ox + (r.x - margin) * scale;
+        let top = oy + (r.y - margin).max(0.0) * scale;
+        let right = ox + (r.x + r.width + margin) * scale;
+        let bottom = oy + (r.y + r.height + margin) * scale;
         cx >= left && cx <= right && cy >= top && cy <= bottom
     })
 }

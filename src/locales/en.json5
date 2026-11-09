@@ -243,6 +243,12 @@
     now: "Now",
     rain: "{n}% rain",
     updated: "Updated {time}",
+    rainSoon: "Rain coming",
+    rainIn: "in {m} min",
+    rainAlert: {
+      label: "Rain warning",
+      desc: "When rain is coming within the hour, the island shows it.",
+    },
     code: {
       clear: "Clear",
       mainlyClear: "Mostly clear",
@@ -486,6 +492,30 @@
     },
   },
 
+  menu: {
+    whatsNew: "What's new?",
+    settings: "Settings",
+    stopTimer: "Stop timer",
+  },
+
+  whatsnew: {
+    title: "What's new",
+    heading: "New in version {version}",
+    short: "New in {version}",
+    open: "Show",
+    done: "Got it",
+    hide: "Hide",
+    none: "No notes for this version.",
+    v070: {
+      live: "Follow a train live: in Departures → Connection, open a connection and click “Follow live”. The island then shows how many minutes until your train leaves (with delays), where to change and when you arrive, and speaks up shortly before the departure.",
+      rain: "Rain warning: when rain is coming within the hour, the island shows it.",
+      countdown: "Countdown in the island: click the pin on a countdown to keep it in the island.",
+      switch: "Several activities: the one you looked at last comes first; the mouse wheel over the island switches.",
+      menu: "Right-click the island for quick actions (stop the live view, stop the timer…).",
+      speed: "The island uses less power, and AI apps go to sleep after 10 minutes unused.",
+    },
+  },
+
   update: {
     title: "Updates",
     short: "Update {version}",
@@ -665,6 +695,9 @@
     tomorrow: "Tomorrow",
     inDays: "in {n} days",
     ago: "{n} days ago",
+    short: "in {n} d",
+    pin: "Show in the island",
+    unpin: "Stop showing in the island",
     showBubble: {
       label: "Days bubble",
       desc: "Shows the days until the next date beside the island.",
@@ -690,6 +723,7 @@
     view: {
       departures: "Departures",
       connections: "Connection",
+      live: "Live",
     },
     from: "From",
     to: "To",
@@ -707,6 +741,25 @@
     durationLong: "{h} h {m}",
     changes: "{n} changes",
     direct: "direct",
+    live: {
+      start: "Follow live",
+      stop: "Stop live view",
+      hint: "Shows this connection in the island until you arrive.",
+      departsIn: "Departure",
+      go: "Time to go, your train leaves soon!",
+      arriveIn: "Arriving at {to}",
+      nextStop: "Change at {to}",
+      changeAt: "Change at {at}, next leaves",
+      arrived: "Arrived",
+      now: "now",
+      min: "in {m} min",
+      hours: "in {h} h {m}",
+      alert: {
+        label: "Reminder before departure",
+        desc: "This many minutes before the departure, the island peeks and pulses red.",
+        off: "Off",
+      },
+    },
   },
 
   webapps: {
