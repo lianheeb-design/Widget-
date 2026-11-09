@@ -61,6 +61,11 @@
       version: "Version {version}",
       source: "Quellcode",
       license: "Lizenz",
+      log: {
+        label: "Fehlerprotokoll",
+        desc: "Falls etwas nicht klappt: Die Datei island.log hilft bei der Fehlersuche.",
+        open: "Öffnen",
+      },
       updates: {
         label: "Updates",
         idle: "Prüfen, ob eine neue Version erschienen ist.",
@@ -469,6 +474,61 @@
   },
 
   extras: {
+    theme: {
+      label: "Themen",
+      desc: "Ein Klick setzt Farbe, Verlauf, Leuchten und Rand zusammen. Danach kannst du alles einzeln anpassen.",
+      classic: "Klassisch",
+      midnight: "Mitternacht",
+      neon: "Neon",
+      sunset: "Sonnenuntergang",
+      glacier: "Gletscher",
+      forest: "Wald",
+      glass: "Glas",
+    },
+    gradient: {
+      label: "Farbverlauf",
+      desc: "Die Insel geht nach unten in eine zweite Farbe über.",
+    },
+    halo: {
+      label: "Leuchtrand",
+      desc: "Ein sanftes Leuchten um die Insel: in deiner Farbe oder in der Farbe des offenen Moduls.",
+      off: "Aus",
+      color: "Farbe",
+      module: "Modul",
+    },
+    motion: {
+      label: "Animations-Stil",
+      desc: "Wie die Insel aufgeht, zugeht und ihre Grösse ändert. Ist in Windows „Animationseffekte“ aus, bleibt sie ruhig.",
+      standard: "Standard",
+      bouncy: "Federnd",
+      smooth: "Sanft",
+      fast: "Schnell",
+      off: "Aus",
+    },
+    effects: {
+      title: "Effekte",
+      desc: "Kleine Extras, jedes einzeln abschaltbar.",
+      pulse: {
+        label: "Puls bei Alarm",
+        desc: "Die Insel pulsiert in der Farbe des Moduls, wenn der Wecker klingelt oder der Timer fertig ist.",
+      },
+      sheen: {
+        label: "Glanz bei Neuem",
+        desc: "Ein Lichtstreifen läuft über die Insel, wenn sie sich mit etwas Neuem meldet.",
+      },
+      rolling: {
+        label: "Rollende Ziffern",
+        desc: "Uhr und Timer rollen um wie eine Anzeigetafel.",
+      },
+      confetti: {
+        label: "Konfetti",
+        desc: "Wenn ein Timer oder eine Fokus-Runde fertig ist.",
+      },
+      breathe: {
+        label: "Atmen",
+        desc: "Die ruhende Insel leuchtet ganz leicht pulsierend.",
+      },
+    },
     behavior: {
       title: "Verhalten",
       desc: "Damit die Insel nicht im Weg ist, zum Beispiel bei den Tabs im Browser.",
@@ -604,6 +664,26 @@
       notFound: "Keine Haltestelle mit diesem Namen gefunden.",
       change: "Andere Haltestelle wählen",
     },
+    view: {
+      departures: "Abfahrten",
+      connections: "Verbindung",
+    },
+    from: "Von",
+    to: "Nach",
+    swap: "Von und Nach tauschen",
+    favorite: "Als Lieblingsstrecke speichern",
+    unfavorite: "Aus Lieblingsstrecken entfernen",
+    favorites: "Lieblingsstrecken",
+    pickRoute: "Wähle oben, von wo nach wo du fahren willst.",
+    noConnections: "Keine Verbindungen gefunden.",
+    later: "Später",
+    nowButton: "Jetzt",
+    back: "Zurück",
+    walk: "{m} Min. zu Fuss",
+    duration: "{m} Min.",
+    durationLong: "{h} h {m}",
+    changes: "{n} Umst.",
+    direct: "direkt",
   },
 
   webapps: {
@@ -615,6 +695,49 @@
     reload: "Neu laden",
     browser: "Im Browser öffnen",
     close: "Schliessen",
+  },
+
+  calc: {
+    title: "Rechner",
+    placeholder: "z. B. 15 % von 240 · 5 km in m · 20 CHF in EUR",
+    hint: "Enter oder = speichert die Rechnung hier. Ein Klick auf das Ergebnis kopiert es.",
+    error: "Das kann ich nicht rechnen",
+    copy: "Ergebnis kopieren",
+    copied: "Kopiert ✓",
+    backspace: "Löschen",
+    noCurrency: "Unbekannte Währung",
+    offline: "Kurse nicht erreichbar",
+  },
+
+  translate: {
+    title: "Übersetzer",
+    from: "Von",
+    to: "Nach",
+    auto: "Sprache erkennen",
+    swap: "Sprachen tauschen",
+    paste: "Aus Zwischenablage",
+    placeholder: "Text eingeben, Enter übersetzt (Shift+Enter: neue Zeile)",
+    hint: "Die Übersetzung erscheint hier.",
+    busy: "Übersetze…",
+    clear: "Leeren",
+    copy: "Übersetzung kopieren",
+    copied: "kopiert ✓",
+    detected: "Erkannt: {lang}",
+    emptyClipboard: "In der Zwischenablage ist kein Text.",
+    error: {
+      quota: "Tageslimit erreicht. Morgen geht es wieder, oder trag einen DeepL-Schlüssel ein.",
+      badKey: "Der DeepL-Schlüssel stimmt nicht. Prüfe ihn in den Einstellungen.",
+      network: "Keine Verbindung zum Übersetzungsdienst.",
+      other: "Übersetzen hat nicht geklappt.",
+    },
+    deepl: {
+      label: "DeepL (optional)",
+      desc: "Ohne Schlüssel übersetzt MyMemory (kostenlos, etwa 5000 Zeichen pro Tag). Mit einem kostenlosen DeepL-Schlüssel (deepl.com → API Free) wird es besser. Der Text geht an den jeweiligen Dienst.",
+      placeholder: "DeepL-Schlüssel",
+      save: "Speichern",
+      remove: "Entfernen",
+      saved: "Schlüssel gespeichert (sicher in Windows). Übersetzt wird mit DeepL.",
+    },
   },
 
   picker: {

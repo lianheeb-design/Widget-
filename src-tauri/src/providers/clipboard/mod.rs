@@ -502,6 +502,15 @@ impl Provider for ClipboardProvider {
     }
 }
 
+/// The text on the clipboard now, if there is any (the translator's "from
+/// the clipboard").
+pub fn current_text() -> Option<String> {
+    match os::read().ok()??.clip {
+        os::Clip::Text(text) => Some(text),
+        _ => None,
+    }
+}
+
 /// Puts plain text on the clipboard, owned by the island window (Windows
 /// refuses clipboard data without an owner). Used by other providers, e.g.
 /// the color picker.

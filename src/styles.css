@@ -18,6 +18,8 @@
 	--animate-spin-fast: spin 0.9s linear infinite;
 	--animate-marquee: marquee var(--marquee-duration) ease-in-out infinite alternate;
 	--animate-rim-spin: rim-spin 7s linear infinite;
+	--animate-island-pulse: island-pulse 1.25s ease-in-out infinite;
+	--animate-island-breathe: island-breathe 4.5s ease-in-out infinite;
 	--font-glyph: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol", sans-serif;
 }
 
@@ -42,6 +44,36 @@
 @keyframes rim-spin {
 	to {
 		--rim-angle: 360deg;
+	}
+}
+
+/* The island glows in a module's color while it needs you (alarm, finished timer). */
+@keyframes island-pulse {
+	0%,
+	100% {
+		box-shadow:
+			0 0 0 0 color-mix(in srgb, var(--glow) 0%, transparent),
+			0 14px 34px -14px rgba(0, 0, 0, 0.7);
+	}
+	50% {
+		box-shadow:
+			0 0 30px 3px color-mix(in srgb, var(--glow) 80%, transparent),
+			0 14px 34px -14px rgba(0, 0, 0, 0.7);
+	}
+}
+
+/* At rest, a slow, faint breath of light. */
+@keyframes island-breathe {
+	0%,
+	100% {
+		box-shadow:
+			0 0 8px -2px color-mix(in srgb, var(--glow) 25%, transparent),
+			0 14px 34px -14px rgba(0, 0, 0, 0.7);
+	}
+	50% {
+		box-shadow:
+			0 0 22px 0 color-mix(in srgb, var(--glow) 55%, transparent),
+			0 14px 34px -14px rgba(0, 0, 0, 0.7);
 	}
 }
 

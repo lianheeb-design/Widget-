@@ -5,6 +5,7 @@ import { currentTemperature, type IdleItem, useDesktop, useExtras } from "../cor
 import { useLocale } from "../core/i18n";
 import { useNow } from "../modules/ai-agents/common/format";
 import { CALENDAR_PROVIDER, type CalendarState } from "../modules/clock/types";
+import { RollingText } from "./RollingText";
 
 const HOUR = 3_600_000;
 
@@ -21,7 +22,9 @@ export function IdleInfo() {
 	const render = (item: IdleItem): ReactNode => {
 		switch (item) {
 			case "clock":
-				return new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(now);
+				return (
+					<RollingText text={new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(now)} />
+				);
 			case "date":
 				return new Intl.DateTimeFormat(locale, { weekday: "short", day: "numeric", month: "short" }).format(now);
 			case "weather":

@@ -1,3 +1,4 @@
+import { RollingText } from "../../../components/RollingText";
 import { useNow } from "../../ai-agents/common/format";
 import { clockLabel } from "../format";
 import { TIMER_ACCENT } from "../settings";
@@ -14,7 +15,7 @@ export function TimerRemaining({
 	const remaining = deadline ? deadline - now : (pausedRemaining ?? 0);
 	return (
 		<span className="text-[13px] font-bold tabular-nums" style={{ color: TIMER_ACCENT, opacity: deadline ? 1 : 0.55 }}>
-			{clockLabel(remaining)}
+			<RollingText text={clockLabel(remaining)} />
 		</span>
 	);
 }

@@ -54,6 +54,8 @@ export interface ModuleView {
 	 * must be dealt with (a ringing alarm needs its off button).
 	 */
 	showWhenOff?: boolean;
+	/** A new value bursts confetti out of the island (a timer or focus round done). */
+	celebrateKey?: string;
 }
 
 export interface IslandModule {

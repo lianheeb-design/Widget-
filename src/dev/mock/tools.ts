@@ -20,6 +20,58 @@ const board = () => ({
 	],
 });
 
+const point = (name: string, min: number, platform: string | null, delay = 0) => ({
+	station: { name },
+	departureTimestamp: at(min),
+	arrivalTimestamp: at(min),
+	delay,
+	platform,
+});
+const connections = () => ({
+	connections: [
+		{
+			from: point("Altstätten SG", 4, "2", 2),
+			to: point("St. Gallen", 37, "5"),
+			duration: "00d00:33:00",
+			transfers: 0,
+			sections: [
+				{
+					journey: { category: "IR", number: "13", to: "Zürich HB" },
+					walk: null,
+					departure: point("Altstätten SG", 4, "2", 2),
+					arrival: point("St. Gallen", 37, "5"),
+				},
+			],
+		},
+		{
+			from: point("Altstätten SG", 12, "1"),
+			to: point("St. Gallen", 53, "3"),
+			duration: "00d00:41:00",
+			transfers: 1,
+			sections: [
+				{
+					journey: { category: "S", number: "4", to: "Sargans" },
+					walk: null,
+					departure: point("Altstätten SG", 12, "1"),
+					arrival: point("Heerbrugg", 20, "2"),
+				},
+				{
+					journey: null,
+					walk: { duration: 180 },
+					departure: point("Heerbrugg", 20, null),
+					arrival: point("Heerbrugg", 23, null),
+				},
+				{
+					journey: { category: "B", number: "301", to: "St. Gallen" },
+					walk: null,
+					departure: point("Heerbrugg", 24, "B"),
+					arrival: point("St. Gallen", 53, "3"),
+				},
+			],
+		},
+	],
+});
+
 /** The `tools` provider: control center, Git and ChatGPT. */
 let brightness: number | null = 70;
 let volume = { level: 0.42, muted: false };
@@ -70,19 +122,31 @@ export const tools = defineMock({
 			transit: (p) =>
 				(p as { kind: string }).kind === "stationboard"
 					? board()
-					: {
-							stations: [
-								{ id: "8506302", name: "St. Gallen" },
-								{ id: "8589801", name: "St. Gallen, Marktplatz/Neumarkt" },
-								{ id: "8506121", name: "St. Gallen Haggen" },
-							],
-						},
+					: (p as { kind: string }).kind === "connections"
+						? connections()
+						: {
+								stations: [
+									{ id: "8506302", name: "St. Gallen" },
+									{ id: "8589801", name: "St. Gallen, Marktplatz/Neumarkt" },
+									{ id: "8506121", name: "St. Gallen Haggen" },
+								],
+							},
 			installed_apps: () =>
 				wait(600, [
 					{ name: "ChatGPT", appId: "OpenAI.Codex_2p2nqsd0c76g0!App" },
 					{ name: "Claude", appId: "Claude_pzs8sxrjxfjjc!Claude" },
 				]),
 			open_app: () => null,
+			translate_status: () => ({ hasKey: false }),
+			translate_set_key: () => null,
+			translate_clear_key: () => null,
+			translate_run: (p) =>
+				wait(400, {
+					text: `[${(p as { to: string }).to}] ${(p as { text: string }).text}`,
+					detected: "de",
+					service: "mymemory",
+				}),
+			clipboard_text: () => "Guten Morgen, wie geht es dir?",
 			webapp_show: () => null,
 			webapp_hide: () => null,
 			webapp_focus: () => null,

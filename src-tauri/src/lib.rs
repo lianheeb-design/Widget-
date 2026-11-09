@@ -4,6 +4,7 @@ mod display;
 mod file_drop;
 mod hub;
 mod i18n;
+mod logfile;
 mod pip;
 mod portable;
 mod providers;
@@ -59,6 +60,7 @@ pub fn run() {
         .manage(i18n::Locale::default())
         .setup(|app| {
             let handle = app.handle().clone();
+            logfile::init(&handle);
             app.manage(settings::Settings::load(&handle));
 
             let hub = Arc::new(Hub::new(handle.clone()));

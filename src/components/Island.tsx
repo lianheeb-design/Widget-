@@ -1,9 +1,9 @@
 import { motion } from "motion/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAppearance } from "../core/appearance";
 import { useTauriEvent } from "../core/bridge";
 import { cn } from "../core/cn";
-import { islandFill, SIZE_SCALE, useDesktop, useExtras } from "../core/extras";
+import { islandFill, SIZE_SCALE, useDesktop, useExtras, useLook } from "../core/extras";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
 import { useHitRects } from "../core/useHitRects";
@@ -14,6 +14,7 @@ import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
 import { islandContent } from "./island/content";
+import { Confetti, withMotion } from "./island/effects";
 import { ambientWidth, BUBBLE, BUBBLE_GAP, type Geo, geometry, variantOf } from "./island/geometry";
 import { launcherSize } from "./island/Launcher";
 import { Rim } from "./island/Rim";
@@ -25,7 +26,8 @@ export function Island() {
 	const { mode, primary, secondary, focused } = ctl;
 	const look = useAppearance();
 	const windows = look.style === "windows";
-	const v = variantOf(look);
+	const fx = useLook();
+	const v = withMotion(variantOf(look), fx.motion);
 	useHitRects();
 	useSyncLocale();
 	useIslandFileDrop(ctl);
@@ -55,10 +57,39 @@ export function Island() {
 	const g: Geo = { ...widened, radius: widened.radius * roundness, ear: widened.ear * Math.max(roundness, 0.35) };
 	const scale = SIZE_SCALE[extras.size] ?? 1;
 
-	// The island's fill: a CSS variable the body, the ears and the bubbles share.
+	// The island's fill: a CSS variable the body, the ears and the bubbles share;
+	// the body may fade into a second color towards the bottom.
 	useEffect(() => {
-		document.documentElement.style.setProperty("--island", islandFill(extras.color, extras.opacity));
-	}, [extras.color, extras.opacity]);
+		const root = document.documentElement.style;
+		root.setProperty("--island", islandFill(extras.color, extras.opacity));
+		root.setProperty(
+			"--island-body",
+			fx.gradient
+				? `linear-gradient(180deg, ${islandFill(extras.color, extras.opacity)}, ${islandFill(fx.gradient, extras.opacity)})`
+				: "none",
+		);
+	}, [extras.color, extras.opacity, fx.gradient]);
+
+	// Glow: a steady halo, a pulse in the color of whatever needs you, a breath at rest.
+	const needy = ctl.entries.find((e) => e.view.forceExpanded) ?? ctl.entries.find((e) => e.view.attention);
+	const glow = {
+		halo:
+			fx.halo === "color" ? fx.haloColor : fx.halo === "module" ? ((focused ?? primary)?.view.accent ?? null) : null,
+		pulse: fx.pulse && needy ? (needy.view.accent ?? "#FF9F0A") : null,
+		breathe: fx.breathe && resting ? (fx.halo === "off" ? fx.haloColor : (primary?.view.accent ?? fx.haloColor)) : null,
+	};
+
+	// A sheen each time the island peeks with something new.
+	const peeks = useRef(0);
+	const [sheen, setSheen] = useState<string | null>(null);
+	useEffect(() => {
+		if (mode !== "peek" || !fx.sheen) return;
+		peeks.current += 1;
+		setSheen(`peek-${peeks.current}`);
+	}, [mode, fx.sheen]);
+
+	// Confetti when a module celebrates (timer done, focus round finished).
+	const celebrate = fx.confetti ? (ctl.entries.find((e) => e.view.celebrateKey)?.view.celebrateKey ?? null) : null;
 	const transition = big ? v.expandSpring : v.shellSpring;
 
 	const drag = useIslandDrag({
@@ -136,10 +167,20 @@ export function Island() {
 							</>
 						)}
 
-						<Surface g={g} big={big} look={look} transition={transition} contentKey={content.key} rim={rim}>
+						<Surface
+							g={g}
+							big={big}
+							look={look}
+							transition={transition}
+							contentKey={content.key}
+							rim={rim}
+							glow={glow}
+							sheen={sheen}
+						>
 							{content.node}
 						</Surface>
 
+						<Confetti trigger={celebrate} />
 						<AmbientBubbles entries={ctl.entries} visible={resting} shrunk={mode === "idle" && !windows} {...bubble} />
 						<SecondaryBubble entry={showSecondary ? secondary : undefined} {...bubble} />
 					</motion.div>

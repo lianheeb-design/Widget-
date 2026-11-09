@@ -10,6 +10,7 @@ mod git;
 mod openai;
 mod picker;
 mod system;
+mod translate;
 
 use std::sync::{Arc, OnceLock};
 
@@ -45,6 +46,25 @@ impl Provider for ToolsProvider {
         }
         if let Some(rest) = action.strip_prefix("openai_") {
             return openai::action(rest, &payload);
+        }
+        if let Some(rest) = action.strip_prefix("translate_") {
+            return translate::action(rest, &payload);
+        }
+        if action == "log_error" {
+            let message = payload["message"].as_str().unwrap_or_default();
+            let message: String = message.chars().take(2000).collect();
+            log::error!("ui: {message}");
+            return Ok(Value::Null);
+        }
+        if action == "open_log" {
+            let dir = crate::logfile::dir().ok_or("no log")?;
+            crate::settings::open_url(&dir.to_string_lossy());
+            return Ok(Value::Null);
+        }
+        if action == "clipboard_text" {
+            return Ok(
+                crate::providers::clipboard::current_text().map_or(Value::Null, Value::String)
+            );
         }
         if action == "copy_text" {
             let hub = self.hub.get().ok_or("not started")?;

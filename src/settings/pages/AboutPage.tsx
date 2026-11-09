@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { AppLogo } from "../../components/icons";
 import { Button } from "../../components/ui/button";
 import { Card, Row } from "../../components/ui/card";
-import { command } from "../../core/bridge";
+import { command, providerAction } from "../../core/bridge";
 import { useT } from "../../core/i18n";
 
 type UpdateStatus =
@@ -70,6 +70,11 @@ export function AboutPage() {
 			</div>
 			<Card>
 				<UpdateRow />
+				<Row label={t("settings.about.log.label")} desc={t("settings.about.log.desc")}>
+					<Button onClick={() => providerAction("tools", "open_log").catch(() => undefined)}>
+						{t("settings.about.log.open")}
+					</Button>
+				</Row>
 				<Row label={t("settings.about.license")} desc="GNU GPL v3.0"></Row>
 			</Card>
 		</>

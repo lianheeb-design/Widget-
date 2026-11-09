@@ -2,7 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Island } from "./components/Island";
-import { isTauri, startBridge } from "./core/bridge";
+import { isTauri, providerAction, startBridge } from "./core/bridge";
 import { startSettings } from "./core/settings";
 import { PipApp } from "./pip/PipApp";
 import { SettingsApp } from "./settings/SettingsApp";
@@ -14,6 +14,17 @@ startSettings();
 // Same bundle for every window; pick the UI by window label
 // (or `#settings` / `#pip` when previewing in a browser).
 const label = isTauri ? getCurrentWindow().label : location.hash.slice(1) || "island";
+
+// Errors in the UI go to the app's error log (About → "Open error log").
+if (isTauri) {
+	const report = (message: string) =>
+		providerAction("tools", "log_error", { message: `[${label}] ${message}` }).catch(() => undefined);
+	window.addEventListener("error", (e) => report(`${e.message} (${e.filename}:${e.lineno})`));
+	window.addEventListener("unhandledrejection", (e) => {
+		const reason = e.reason instanceof Error ? (e.reason.stack ?? e.reason.message) : String(e.reason);
+		report(`unhandled: ${reason}`);
+	});
+}
 
 // No browser context menu (reload, inspect…) in release builds.
 if (import.meta.env.PROD) document.addEventListener("contextmenu", (e) => e.preventDefault());

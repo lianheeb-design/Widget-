@@ -16,6 +16,11 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Countdown**, **Abfahrten** (Schweizer ÖV ab deiner Haltestelle) und ein **Fokus-Modus** im Timer (Fokus und Pause im Wechsel, die Insel bleibt dabei ruhig).
 - **Wecker** (im Timer, neben Stoppuhr und Fokus): Weckzeiten einmalig oder an gewählten Wochentagen, mit Name. Beim Klingeln öffnet sich die Insel mit einem Windows-Weckton, bis du auf *Ausschalten* oder *Schlummern* klickst. Weckton und Schlummerdauer in *Einstellungen → Module → Timer*. Der Wecker klingelt, solange der PC an ist; aus dem Energiesparmodus weckt er ihn nicht.
 - **Ort und Haltestelle wählen**: Beim Wetter und bei den Abfahrten auf den Ortsnamen in der Insel klicken, tippen und den richtigen Treffer aus der Liste wählen. Zuletzt verwendete Orte stehen gleich zur Auswahl.
+- **Verbindungen** (im Modul *Abfahrten*, Ansicht *Verbindung*): Von und Nach eingeben, z. B. Altstätten SG → St. Gallen, und die nächsten Verbindungen mit Gleis, Verspätung, Dauer und Umstiegen sehen. Ein Klick zeigt, wo du umsteigst; mit ⭐ speicherst du Lieblingsstrecken.
+- **Rechner**: eintippen oder anklicken, z. B. „15 % von 240“, „5 km in m“, „30 °C in °F“ oder „20 CHF in EUR“ (Tageskurse). Ein Klick auf das Ergebnis kopiert es.
+- **Übersetzer**: Text eintippen oder aus der Zwischenablage holen, Sprache wählen, Enter übersetzt. Kostenlos über MyMemory, optional mit eigenem DeepL-Schlüssel.
+- **Themen, Farbverlauf, Leuchtrand, Animations-Stil und Effekte** (*Einstellungen → Darstellung*): Puls bei Alarm, Glanz bei Neuem, rollende Ziffern, Konfetti und Atmen.
+- **Fehlerprotokoll** (*Einstellungen → Über*): hilft, wenn etwas nicht klappt.
 - **Dunkelmodus** per Knopf und **Nachtlicht**-Einstellungen in der Steuerung.
 - **Farbpipette** (in der Steuerung): Fahr mit der Maus über eine beliebige Stelle am Bildschirm, und die Insel zeigt dir live den Farbcode. Ein Klick kopiert ihn (z. B. `#3DDC84`), Esc oder Rechtsklick bricht ab. Die letzte Farbe bleibt als Kachel zum erneuten Kopieren.
 - **Modul „Notizen“**: eine Schnellnotiz und eine To-do-Liste zum Abhaken. Alles bleibt gespeichert, auch nach einem Neustart.

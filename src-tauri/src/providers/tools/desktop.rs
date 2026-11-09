@@ -285,7 +285,7 @@ mod alarm {
 /// `stationboard` or `locations`, `query` its URL parameters.
 fn transit(payload: &Value) -> Result<Value, String> {
     let kind = payload["kind"].as_str().unwrap_or_default();
-    if kind != "stationboard" && kind != "locations" {
+    if !matches!(kind, "stationboard" | "locations" | "connections") {
         return Err("bad kind".into());
     }
     let agent: ureq::Agent = ureq::Agent::config_builder()

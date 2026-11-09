@@ -72,6 +72,11 @@
       version: "Version {version}",
       source: "Source code",
       license: "License",
+      log: {
+        label: "Error log",
+        desc: "If something goes wrong, the file island.log helps to find out why.",
+        open: "Open",
+      },
       updates: {
         label: "Updates",
         idle: "Check whether a new version is out.",
@@ -492,6 +497,61 @@
   },
 
   extras: {
+    theme: {
+      label: "Themes",
+      desc: "One click sets color, gradient, glow and rim together. You can still change each one afterwards.",
+      classic: "Classic",
+      midnight: "Midnight",
+      neon: "Neon",
+      sunset: "Sunset",
+      glacier: "Glacier",
+      forest: "Forest",
+      glass: "Glass",
+    },
+    gradient: {
+      label: "Gradient",
+      desc: "The island fades into a second color towards the bottom.",
+    },
+    halo: {
+      label: "Glow",
+      desc: "A soft glow around the island: in your color or in the open module's color.",
+      off: "Off",
+      color: "Color",
+      module: "Module",
+    },
+    motion: {
+      label: "Animation style",
+      desc: "How the island opens, closes and resizes. With Windows' animation effects off, it stays calm.",
+      standard: "Standard",
+      bouncy: "Bouncy",
+      smooth: "Smooth",
+      fast: "Fast",
+      off: "Off",
+    },
+    effects: {
+      title: "Effects",
+      desc: "Little extras, each with its own switch.",
+      pulse: {
+        label: "Pulse on alerts",
+        desc: "The island pulses in the module's color when an alarm rings or a timer is done.",
+      },
+      sheen: {
+        label: "Sheen on news",
+        desc: "A band of light sweeps over the island when it brings something new.",
+      },
+      rolling: {
+        label: "Rolling digits",
+        desc: "The clock and the timer roll over like a departure board.",
+      },
+      confetti: {
+        label: "Confetti",
+        desc: "When a timer or a focus round is done.",
+      },
+      breathe: {
+        label: "Breathing",
+        desc: "The resting island glows with a faint, slow pulse.",
+      },
+    },
     behavior: {
       title: "Behavior",
       desc: "So the island doesn't get in the way, for example of the tabs in your browser.",
@@ -627,6 +687,26 @@
       notFound: "No stop found with that name.",
       change: "Choose another stop",
     },
+    view: {
+      departures: "Departures",
+      connections: "Connection",
+    },
+    from: "From",
+    to: "To",
+    swap: "Swap from and to",
+    favorite: "Save as a favorite route",
+    unfavorite: "Remove from favorite routes",
+    favorites: "Favorite routes",
+    pickRoute: "Choose where you go from and to above.",
+    noConnections: "No connections found.",
+    later: "Later",
+    nowButton: "Now",
+    back: "Back",
+    walk: "{m} min walk",
+    duration: "{m} min",
+    durationLong: "{h} h {m}",
+    changes: "{n} changes",
+    direct: "direct",
   },
 
   webapps: {
@@ -638,6 +718,49 @@
     reload: "Reload",
     browser: "Open in the browser",
     close: "Close",
+  },
+
+  calc: {
+    title: "Calculator",
+    placeholder: "e.g. 15% of 240 · 5 km in m · 20 CHF in EUR",
+    hint: "Enter or = keeps the sum here. Click the result to copy it.",
+    error: "Can't calculate that",
+    copy: "Copy the result",
+    copied: "Copied ✓",
+    backspace: "Delete",
+    noCurrency: "Unknown currency",
+    offline: "Rates unavailable",
+  },
+
+  translate: {
+    title: "Translator",
+    from: "From",
+    to: "To",
+    auto: "Detect language",
+    swap: "Swap languages",
+    paste: "From clipboard",
+    placeholder: "Type a text, Enter translates (Shift+Enter: new line)",
+    hint: "The translation shows up here.",
+    busy: "Translating…",
+    clear: "Clear",
+    copy: "Copy the translation",
+    copied: "copied ✓",
+    detected: "Detected: {lang}",
+    emptyClipboard: "There's no text on the clipboard.",
+    error: {
+      quota: "Daily limit reached. Try again tomorrow, or add a DeepL key.",
+      badKey: "The DeepL key is wrong. Check it in the settings.",
+      network: "Can't reach the translation service.",
+      other: "Couldn't translate.",
+    },
+    deepl: {
+      label: "DeepL (optional)",
+      desc: "Without a key, MyMemory translates (free, about 5000 characters a day). A free DeepL key (deepl.com → API Free) gives better results. The text goes to that service.",
+      placeholder: "DeepL key",
+      save: "Save",
+      remove: "Remove",
+      saved: "Key saved (safely in Windows). DeepL translates.",
+    },
   },
 
   picker: {

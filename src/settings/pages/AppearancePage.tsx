@@ -12,16 +12,26 @@ import {
 } from "../../core/appearance";
 import { cn } from "../../core/cn";
 import {
+	effectSettings,
 	extraSettings,
+	type HaloMode,
 	IDLE_ITEMS,
 	type IslandSize,
 	idleItems,
 	islandColor,
+	islandGradient,
+	islandHalo,
+	islandHaloColor,
+	islandMotion,
 	islandOpacity,
 	islandRounding,
 	islandSize,
+	MOTION_STYLES,
+	type MotionStyle,
 	OPEN_DELAYS,
 	openDelay,
+	THEMES,
+	type Theme,
 } from "../../core/extras";
 import { useT } from "../../core/i18n";
 import { appearanceSettings, ISLAND_HIDDEN_KEY, type IslandStyle, readSetting, setSetting } from "../../core/settings";
@@ -163,6 +173,7 @@ export function AppearancePage({ values }: { values: Record<string, unknown> }) 
 			</motion.section>
 
 			<CustomizeCard values={values} windows={windows} />
+			<LookCard values={values} />
 
 			<Card>
 				<Row as="label" label={t("appearance.hide.label")} desc={t("appearance.hide.desc")}>
@@ -367,5 +378,109 @@ function CustomizeCard({ values, windows }: { values: Record<string, unknown>; w
 				</Block>
 			</Card>
 		</>
+	);
+}
+
+/** Themes in one click, gradient, glow, motion style and the little effects. */
+function LookCard({ values }: { values: Record<string, unknown> }) {
+	const t = useT();
+	const color = readSetting(values, islandColor);
+	const gradient = readSetting(values, islandGradient);
+	const halo = readSetting(values, islandHalo);
+	const haloColor = readSetting(values, islandHaloColor);
+	const motionStyle = readSetting(values, islandMotion);
+	const applyTheme = (theme: Theme) => {
+		setSetting(islandColor, theme.color);
+		setSetting(islandGradient, theme.gradient);
+		setSetting(islandOpacity, theme.opacity);
+		setSetting(islandHalo, theme.halo);
+		setSetting(islandHaloColor, theme.haloColor);
+		setSetting(appearanceSettings.border, theme.border);
+	};
+	const current = THEMES.find(
+		(th) =>
+			th.color.toLowerCase() === color.toLowerCase() &&
+			(th.gradient ?? "") === (gradient ?? "") &&
+			th.halo === halo &&
+			th.border === readSetting(values, appearanceSettings.border),
+	)?.id;
+
+	return (
+		<Card>
+			<Block>
+				<Row label={t("extras.theme.label")} desc={t("extras.theme.desc")} />
+				<div className="flex flex-wrap gap-2">
+					{THEMES.map((theme) => (
+						<button
+							type="button"
+							key={theme.id}
+							aria-pressed={current === theme.id}
+							className={cn(
+								"flex items-center gap-2 rounded-full py-1 pr-3 pl-1 text-[12.5px] font-[650] shadow-[inset_0_0_0_1px_var(--hairline)] transition-[background]",
+								current === theme.id ? "bg-white/12 text-text" : "text-text-dim hover:bg-white/6",
+							)}
+							onClick={() => applyTheme(theme)}
+						>
+							<span
+								className="size-5 rounded-full"
+								style={{
+									background: `linear-gradient(180deg, ${theme.color}, ${theme.gradient ?? theme.color})`,
+									boxShadow:
+										theme.halo === "off"
+											? "inset 0 0 0 1px rgba(255,255,255,0.2)"
+											: `0 0 8px ${theme.haloColor}, inset 0 0 0 1px rgba(255,255,255,0.2)`,
+								}}
+							/>
+							{t(`extras.theme.${theme.id}` as "extras.theme.classic")}
+						</button>
+					))}
+				</div>
+			</Block>
+			<Row label={t("extras.gradient.label")} desc={t("extras.gradient.desc")}>
+				<span className="flex flex-none items-center gap-2">
+					{gradient && (
+						<input
+							type="color"
+							className="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0"
+							value={gradient}
+							aria-label={t("extras.gradient.label")}
+							onChange={(e) => setSetting(islandGradient, e.target.value)}
+						/>
+					)}
+					<Toggle checked={!!gradient} onChange={(on) => setSetting(islandGradient, on ? "#000000" : null)} />
+				</span>
+			</Row>
+			<Row label={t("extras.halo.label")} desc={t("extras.halo.desc")}>
+				<span className="flex flex-none items-center gap-2">
+					{halo === "color" && (
+						<input
+							type="color"
+							className="size-7 cursor-pointer rounded-full border-0 bg-transparent p-0"
+							value={haloColor}
+							aria-label={t("extras.halo.label")}
+							onChange={(e) => setSetting(islandHaloColor, e.target.value)}
+						/>
+					)}
+					<Segmented<HaloMode>
+						value={halo}
+						options={(["off", "color", "module"] as const).map((m) => ({ value: m, label: t(`extras.halo.${m}`) }))}
+						onChange={(m) => setSetting(islandHalo, m)}
+					/>
+				</span>
+			</Row>
+			<Row label={t("extras.motion.label")} desc={t("extras.motion.desc")}>
+				<Segmented<MotionStyle>
+					value={motionStyle}
+					options={MOTION_STYLES.map((m) => ({ value: m, label: t(`extras.motion.${m}`) }))}
+					onChange={(m) => setSetting(islandMotion, m)}
+				/>
+			</Row>
+			<Block>
+				<Row label={t("extras.effects.title")} desc={t("extras.effects.desc")} />
+			</Block>
+			{Object.values(effectSettings).map((def) => (
+				<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
+			))}
+		</Card>
 	);
 }
