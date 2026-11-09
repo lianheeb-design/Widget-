@@ -8,7 +8,7 @@ import { ArrowLeftIcon, ExternalLinkIcon, RotateCwIcon, SparklesIcon, XIcon } fr
  * it is closed with the X.
  */
 import { useEffect, useRef, useState } from "react";
-import { command } from "../../core/bridge";
+import { command, useTauriEvent } from "../../core/bridge";
 import { cn } from "../../core/cn";
 import { islandSize, SIZE_SCALE } from "../../core/extras";
 import { useT } from "../../core/i18n";
@@ -95,15 +95,19 @@ function WebAppBox({ app }: { app: AiApp }) {
 
 function WebAppView({ app }: { app: AiApp }) {
 	const t = useT();
-	const { keepOpen } = useIsland();
-	// Open while the web app is shown, wherever the pointer goes; another tab or ✕ ends it.
+	const { keepOpen, collapse } = useIsland();
+	// Open while the web app is shown, wherever the pointer goes; another tab, ✕
+	// or going on in another app (the backend notices that) ends it.
 	useEffect(() => {
 		keepOpen(true, WEBAPPS_MODULE);
 		return () => keepOpen(false, WEBAPPS_MODULE);
 	}, [keepOpen]);
+	useTauriEvent("island://webapp-away", () => collapse());
 	const enabled = useAiButtons().map((b) => b.app);
 	const tabs = enabled.some((a) => a.id === app.id) ? enabled : [app, ...enabled];
 	const cmd = (what: string) => tools<string | null>(`webapp_${what}`, { id: app.id });
+	// Still loading (or it failed): there is nothing to go back in or reload yet.
+	const run = (what: string) => cmd(what).catch(() => undefined);
 
 	return (
 		<div className="flex h-full flex-col gap-2 px-1 pb-1" onClick={(e) => e.stopPropagation()}>
@@ -124,10 +128,10 @@ function WebAppView({ app }: { app: AiApp }) {
 						</button>
 					))}
 				</div>
-				<button type="button" className={headerButton} title={t("webapps.back")} onClick={() => cmd("back")}>
+				<button type="button" className={headerButton} title={t("webapps.back")} onClick={() => run("back")}>
 					<ArrowLeftIcon size={14} />
 				</button>
-				<button type="button" className={headerButton} title={t("webapps.reload")} onClick={() => cmd("reload")}>
+				<button type="button" className={headerButton} title={t("webapps.reload")} onClick={() => run("reload")}>
 					<RotateCwIcon size={13} />
 				</button>
 				<button

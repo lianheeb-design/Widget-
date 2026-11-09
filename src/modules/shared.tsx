@@ -3,16 +3,39 @@ import { type KeyboardEvent, useEffect } from "react";
 import { command } from "../core/bridge";
 import { useIsland } from "../core/island";
 
-/** Text fields in the island need the keyboard: ask the window for focus. */
+/**
+ * Text fields in the island need the keyboard: ask the window for focus.
+ * While a field has it, the island stays open; it lets go as soon as the
+ * keyboard is elsewhere (another app clicked, focus refused), or the island
+ * would stay open for good.
+ */
 export function useKeyboard(owner: string) {
 	const island = useIsland();
-	useEffect(() => () => island.keepOpen(false, owner), [island, owner]);
+	useEffect(() => {
+		const away = () => island.keepOpen(false, owner);
+		window.addEventListener("blur", away);
+		return () => {
+			window.removeEventListener("blur", away);
+			island.keepOpen(false, owner);
+		};
+	}, [island, owner]);
 	return {
 		onMouseDown: () => {
 			island.keepOpen(true, owner);
-			command("focus_island");
+			command("focus_island")
+				.catch(() => undefined)
+				.finally(() =>
+					// Windows may refuse the focus: then no blur ever comes to end the hold.
+					window.setTimeout(() => {
+						if (!document.hasFocus()) island.keepOpen(false, owner);
+					}, 400),
+				);
 		},
-		onFocus: () => island.keepOpen(true, owner),
+		// Only while the island really has the keyboard: a field focused from code
+		// (a keypad press, a picker opening) while another app is in use must not hold it.
+		onFocus: () => {
+			if (document.hasFocus()) island.keepOpen(true, owner);
+		},
 		onBlur: () => island.keepOpen(false, owner),
 		onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
 			if (e.key === "Escape") {

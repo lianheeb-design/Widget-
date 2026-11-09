@@ -3,13 +3,12 @@ import { CheckIcon, NotebookPenIcon, XIcon } from "lucide-react";
  * Notes & to-dos: one quick note and a short to-do list, saved with the
  * settings so they survive restarts.
  */
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
-import { command } from "../../core/bridge";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { useIsland } from "../../core/island";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
+import { newId, useKeyboard } from "../shared";
 
 const ACCENT = "#FFD60A";
 const SAVE_DELAY = 500;
@@ -31,29 +30,6 @@ export const notesSettings = {
 		default: false,
 	},
 } satisfies Record<string, SettingDef>;
-
-const newId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
-
-/** Text fields in the island need the keyboard: ask the window for focus. */
-function useKeyboard(owner: string) {
-	const island = useIsland();
-	useEffect(() => () => island.keepOpen(false, owner), [island, owner]);
-	return {
-		onMouseDown: () => {
-			island.keepOpen(true, owner);
-			command("focus_island");
-		},
-		onFocus: () => island.keepOpen(true, owner),
-		onBlur: () => island.keepOpen(false, owner),
-		onKeyDown: (e: KeyboardEvent<HTMLElement>) => {
-			if (e.key === "Escape") {
-				e.preventDefault();
-				(e.target as HTMLElement).blur();
-				command("restore_focus");
-			}
-		},
-	};
-}
 
 function NotesPanel() {
 	const t = useT();

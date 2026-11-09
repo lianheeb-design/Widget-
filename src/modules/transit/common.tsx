@@ -61,7 +61,10 @@ export function useStationSearch(exclude?: Station | null) {
 	const recent = useMemo(() => recentList.filter((s) => s.id !== exclude?.id).map(stationItem), [recentList, exclude]);
 	const rememberStation = useCallback(
 		(next: Station, also?: Station | null) =>
-			setSetting(recentStations, remember(also ? [also, ...recentList] : recentList, next, sameStation, 6)),
+			setSetting(
+				recentStations,
+				remember(also ? remember(recentList, also, sameStation, 6) : recentList, next, sameStation, 6),
+			),
 		[recentList],
 	);
 	return {

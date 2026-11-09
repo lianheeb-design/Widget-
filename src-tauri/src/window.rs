@@ -19,6 +19,8 @@ pub const HOVER_EVENT: &str = "island://hover";
 pub const FULLSCREEN_EVENT: &str = "island://fullscreen";
 /// Tray "Recenter": the frontend snaps the island back to the middle.
 pub const RECENTER_EVENT: &str = "island://recenter";
+/// A web app was open and another app came to the front: the island closes it.
+pub const WEBAPP_AWAY_EVENT: &str = "island://webapp-away";
 
 /// Strip height in logical pixels (fits the tallest expanded panel + shadow).
 pub const STRIP_HEIGHT: f64 = 720.0;
@@ -35,22 +37,27 @@ pub fn last_foreground() -> Option<windows::Win32::Foundation::HWND> {
 
 #[cfg(windows)]
 fn track_foreground(app: &AppHandle) {
-    use windows::Win32::UI::WindowsAndMessaging::GetForegroundWindow;
-    let fg = unsafe { GetForegroundWindow() };
-    if fg.is_invalid() {
-        return;
-    }
-    let ours = app
-        .webview_windows()
-        .values()
-        .any(|w| w.hwnd().is_ok_and(|h| h.0 == fg.0));
-    if !ours {
-        LAST_FOREGROUND.store(fg.0 as isize, Ordering::Relaxed);
+    let fg = foreground_window();
+    if fg != 0 && !is_ours(app, fg) {
+        LAST_FOREGROUND.store(fg, Ordering::Relaxed);
     }
 }
 
 #[cfg(not(windows))]
 fn track_foreground(_: &AppHandle) {}
+
+/// Whether window `hwnd` is one of this app's (the island, settings…).
+#[cfg(windows)]
+fn is_ours(app: &AppHandle, hwnd: isize) -> bool {
+    app.webview_windows()
+        .values()
+        .any(|w| w.hwnd().is_ok_and(|h| h.0 as isize == hwnd))
+}
+
+#[cfg(not(windows))]
+fn is_ours(_: &AppHandle, _: isize) -> bool {
+    true
+}
 
 /// Lets the island take keyboard focus (typing a question).
 #[tauri::command]
@@ -225,6 +232,7 @@ pub fn spawn_hit_test(app: AppHandle) {
         let mut button_down = false;
         let mut pressed_inside = false;
         let mut file_drag = false;
+        let mut web_app_had_focus = false;
         loop {
             std::thread::sleep(Duration::from_millis(25));
             let Some(win) = app.get_webview_window(ISLAND_LABEL) else {
@@ -254,6 +262,22 @@ pub fn spawn_hit_test(app: AppHandle) {
             let fg = foreground_window();
             let fg_changed = fg != last_fg;
             last_fg = fg;
+
+            // An open web app keeps the island open and lets it take the focus. Once
+            // the person goes on in another app, close it: otherwise the island stays
+            // open for good and keeps grabbing the focus from that app.
+            if !WEB_APP.load(Ordering::Relaxed) {
+                web_app_had_focus = false;
+            } else if fg != 0 && (fg_changed || tick.is_multiple_of(4)) {
+                if is_ours(&app, fg) {
+                    web_app_had_focus = true;
+                } else if web_app_had_focus {
+                    web_app_had_focus = false;
+                    crate::webapp::hide(&app);
+                    let _ = app.emit(WEBAPP_AWAY_EVENT, ());
+                }
+            }
+
             let island_interactive = !fullscreen || !hide_in_fullscreen;
             let interaction_changed = island_interactive != was_interactive;
             was_interactive = island_interactive;

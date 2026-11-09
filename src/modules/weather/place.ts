@@ -27,7 +27,10 @@ export function useWeatherPicker() {
 	const choose = useCallback(
 		(place: WeatherPlace) => {
 			setSetting(weatherPlace, place);
-			setSetting(weatherRecent, remember(current ? [current, ...recentList] : recentList, place, sameWeatherPlace));
+			setSetting(
+				weatherRecent,
+				remember(current ? remember(recentList, current, sameWeatherPlace) : recentList, place, sameWeatherPlace),
+			);
 		},
 		[current, recentList],
 	);
