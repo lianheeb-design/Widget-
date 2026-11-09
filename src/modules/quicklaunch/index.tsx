@@ -14,7 +14,7 @@ import type { IslandModule, ModuleView } from "../../core/types";
 import { newId } from "../shared";
 import { errorText, tools } from "../tools/bridge";
 import { AiSettings } from "./AiSettings";
-import { openAi, resolve, useAiButtons, useInstalledApps } from "./ai";
+import { alternative, openAi, resolve, useAiButtons, useInstalledApps } from "./ai";
 
 const ACCENT = "#BF5AF2";
 
@@ -62,20 +62,17 @@ function QuickPanel() {
 		<div className="flex h-full flex-col gap-1.5 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="grid min-h-0 flex-1 grid-cols-5 content-start gap-2 overflow-y-auto" data-scroll>
 				{ai.map(({ app, mode }) => {
-					const where = resolve(app, mode, installed).kind;
-					const other = where === "app" ? "web" : installed?.[app.id] ? "app" : null;
+					const target = resolve(app, mode, installed);
+					const where = target.kind;
+					const other = alternative(target).kind;
 					return (
 						<button
 							type="button"
 							key={`ai-${app.id}`}
-							title={
-								other
-									? t("quick.ai.tooltipSwap", {
-											where: t(`quick.ai.where.${where}`),
-											other: t(`quick.ai.where.${other}`),
-										})
-									: t("quick.ai.tooltip", { where: t(`quick.ai.where.${where}`) })
-							}
+							title={t("quick.ai.tooltipSwap", {
+								where: t(`quick.ai.where.${where}`),
+								other: t(`quick.ai.where.${other}`),
+							})}
 							className={tile}
 							onClick={() =>
 								openAi(app, mode, installed)

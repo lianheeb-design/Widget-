@@ -52,6 +52,12 @@ impl Provider for ToolsProvider {
             crate::providers::clipboard::copy_text(hub, text)?;
             return Ok(Value::Null);
         }
+        if action == "open_webapp" {
+            let hub = self.hub.get().ok_or("not started")?;
+            let field = |key: &str| payload[key].as_str().unwrap_or_default();
+            crate::webapp::toggle(hub.app(), field("id"), field("url"), field("title"))?;
+            return Ok(Value::Null);
+        }
         if action == "pick_color" {
             let hub = self.hub.get().cloned().ok_or("not started")?;
             picker::start(hub)?;

@@ -1,14 +1,16 @@
 /**
  * AI apps in the quick launch: ChatGPT, Claude, Gemini and friends, each
- * opened on its website or in its desktop app (when one is installed, found
- * by name in the Start menu). The person picks per app: off, automatic (the
- * app when installed, else the website), always web, or always the app.
+ * opened as a web app in the island's own window, in the browser, or in its
+ * desktop app (when one is installed, found by name in the Start menu). The
+ * person picks per app: off, island, browser, app, or automatic (the app when
+ * installed, else the browser).
  */
 import { useCallback, useEffect, useState } from "react";
 import { type SettingDef, useSetting } from "../../core/settings";
 import { errorText, tools } from "../tools/bridge";
 
-export type AiMode = "off" | "auto" | "web" | "app";
+/** `island`: the website in the island's own window under it; `web`: in the default browser. */
+export type AiMode = "off" | "island" | "web" | "app" | "auto";
 
 export interface AiApp {
 	id: string;
@@ -54,7 +56,7 @@ export const AI_APPS: AiApp[] = [
 export const aiModes: SettingDef<Record<string, AiMode>> = {
 	key: "quick.ai",
 	label: "quick.ai.title",
-	default: { chatgpt: "auto", claude: "auto", gemini: "auto" },
+	default: { chatgpt: "island", claude: "island", gemini: "island" },
 };
 
 export const modeOf = (modes: Record<string, AiMode>, id: string): AiMode => modes[id] ?? "off";
@@ -115,26 +117,28 @@ export function useInstalledApps() {
 	return { installed, busy, refresh };
 }
 
-/** Where a click goes: the app (its Start menu id) or the website. */
-export function resolve(
-	app: AiApp,
-	mode: AiMode,
-	installed: Installed | null,
-): { kind: "app" | "web"; appId?: string } {
+export type AiTarget = { kind: "island" | "web" } | { kind: "app"; appId: string };
+
+/** Where a click goes: the island's own web window, the browser, or the desktop app. */
+export function resolve(app: AiApp, mode: AiMode, installed: Installed | null): AiTarget {
+	if (mode === "island") return { kind: "island" };
 	const appId = installed?.[app.id];
 	if ((mode === "auto" || mode === "app") && appId) return { kind: "app", appId };
 	return { kind: "web" };
 }
 
+/** What a right click opens: the browser, or the island's window when a click already opens the browser. */
+export function alternative(target: AiTarget): AiTarget {
+	return target.kind === "web" ? { kind: "island" } : { kind: "web" };
+}
+
 /** Opens it the way `resolve` says, or the other way with `swap` (right click). */
 export async function openAi(app: AiApp, mode: AiMode, installed: Installed | null, swap = false) {
-	let target = resolve(app, mode, installed);
-	if (swap) {
-		const appId = installed?.[app.id];
-		target = target.kind === "app" || !appId ? { kind: "web" } : { kind: "app", appId };
-	}
+	const first = resolve(app, mode, installed);
+	const target = swap ? alternative(first) : first;
 	try {
-		if (target.kind === "app" && target.appId) await tools("open_app", { appId: target.appId });
+		if (target.kind === "app") await tools("open_app", { appId: target.appId });
+		else if (target.kind === "island") await tools("open_webapp", { id: app.id, url: app.url, title: app.name });
 		else await tools("open_target", { target: app.url });
 	} catch (e) {
 		// The app is gone (uninstalled since the last look): fall back to the website.

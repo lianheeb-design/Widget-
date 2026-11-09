@@ -6,7 +6,7 @@ import { useT } from "../../core/i18n";
 import { setSetting, useSetting } from "../../core/settings";
 import { AI_APPS, type AiMode, aiModes, modeOf, useInstalledApps } from "./ai";
 
-const MODES: AiMode[] = ["off", "auto", "web", "app"];
+const MODES: AiMode[] = ["off", "island", "web", "app", "auto"];
 
 /** Per AI app: off, automatic, website or desktop app, with whether the app is installed. */
 export function AiSettings() {

@@ -83,6 +83,7 @@ export const tools = defineMock({
 					{ name: "Claude", appId: "Claude_pzs8sxrjxfjjc!Claude" },
 				]),
 			open_app: () => null,
+			open_webapp: () => null,
 			alarm_start: () => null,
 			alarm_stop: () => null,
 			alarm_test: () => null,

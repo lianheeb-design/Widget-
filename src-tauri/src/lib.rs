@@ -13,6 +13,7 @@ mod sound;
 mod store;
 mod tray;
 mod updater;
+mod webapp;
 mod window;
 
 use std::sync::Arc;
