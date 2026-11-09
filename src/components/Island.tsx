@@ -13,6 +13,7 @@ import { modules } from "../modules";
 import { requestAskFocus } from "../modules/ask/store";
 import { requestFindFocus } from "../modules/find/store";
 import { useRoutines } from "../modules/routines/engine";
+import { notesAsked } from "../modules/whatsnew";
 import { AmbientBubbles, SecondaryBubble } from "./island/Bubbles";
 import { islandContent } from "./island/content";
 import { Confetti, withMotion } from "./island/effects";
@@ -213,7 +214,15 @@ export function Island() {
 						<Confetti trigger={celebrate} />
 						<AmbientBubbles entries={ctl.entries} visible={resting} shrunk={mode === "idle" && !windows} {...bubble} />
 						<SecondaryBubble entry={showSecondary ? secondary : undefined} {...bubble} />
-						<QuickMenu at={menuAt} items={menuItems} onWhatsNew={() => ctl.expand("whatsnew")} onClose={closeMenu} />
+						<QuickMenu
+							at={menuAt}
+							items={menuItems}
+							onWhatsNew={() => {
+								notesAsked.set(true);
+								ctl.expand("whatsnew");
+							}}
+							onClose={closeMenu}
+						/>
 					</motion.div>
 				</motion.div>
 			</div>

@@ -7,7 +7,7 @@ import { SunriseIcon } from "lucide-react";
  */
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "../../core/i18n";
-import { useIsland } from "../../core/island";
+import { createStore, useIsland } from "../../core/island";
 import {
 	moduleEnabled,
 	readSetting,
@@ -55,6 +55,9 @@ const favorites: SettingDef<{ from: Station; to: Station }[]> = {
 const alarms: SettingDef<Parameters<typeof nextRing>[0]> = { key: "alarm.items", label: "alarm.title", default: [] };
 
 const pad = (n: number) => String(n).padStart(2, "0");
+
+/** The briefing on show right now (its peek key), or `null`. "Thanks" ends it. */
+const showing = createStore<string | null>(null);
 
 function Line({ icon, children }: { icon: ReactNode; children: ReactNode }) {
 	return (
@@ -154,7 +157,11 @@ function BriefingPanel() {
 					type="button"
 					className="rounded-full px-3 py-1 text-[12px] font-bold text-black"
 					style={{ background: ACCENT }}
-					onClick={collapse}
+					onClick={() => {
+						// Gone for good, not just folded: reopening the island mustn't bring it back.
+						showing.set(null);
+						collapse();
+					}}
 				>
 					{t("briefing.thanks")}
 				</button>
@@ -204,7 +211,7 @@ export const briefingModule: IslandModule = {
 		const enabled = useSetting(moduleEnabled(briefingModule));
 		const last = useSetting(shownOn);
 		const asked = useSetting(BRIEFING_NOW);
-		const [showing, setShowing] = useState<string | null>(null);
+		const current = showing.use();
 		const hour = new Date().getHours();
 		const candidate = enabled && last !== today() && hour >= FROM_HOUR && hour < TO_HOUR;
 
@@ -216,7 +223,7 @@ export const briefingModule: IslandModule = {
 					.then((idle) => {
 						if (idle === null || idle >= ACTIVE_MS) return;
 						setSetting(shownOn, today());
-						setShowing(`morning:${today()}`);
+						showing.set(`morning:${today()}`);
 					})
 					.catch(() => undefined);
 			check();
@@ -229,15 +236,15 @@ export const briefingModule: IslandModule = {
 		useEffect(() => {
 			if (asked === seenAsk.current) return;
 			seenAsk.current = asked;
-			setShowing(`asked:${asked}`);
+			showing.set(`asked:${asked}`);
 		}, [asked]);
 
 		// Gone again after a while.
 		useEffect(() => {
-			if (!showing) return;
-			const timer = window.setTimeout(() => setShowing(null), SHOW_MS + 500);
+			if (!current) return;
+			const timer = window.setTimeout(() => showing.set((s) => (s === current ? null : s)), SHOW_MS + 500);
 			return () => window.clearTimeout(timer);
-		}, [showing]);
+		}, [current]);
 
 		return {
 			active: false,
@@ -247,10 +254,12 @@ export const briefingModule: IslandModule = {
 			icon: <SunriseIcon size={15} color={ACCENT} />,
 			expanded: <BriefingPanel />,
 			expandedSize: { width: 560, height: 176 },
-			activityKey: showing ?? undefined,
+			activityKey: current ?? undefined,
 			peekMs: SHOW_MS,
 			// Opening the island while it shows stays on it.
-			attention: !!showing,
+			attention: !!current,
+			// Once over (or thanked), its tab can't come back by reopening the island.
+			openable: !!current,
 		};
 	},
 };

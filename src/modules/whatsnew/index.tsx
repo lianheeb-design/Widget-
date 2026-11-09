@@ -7,7 +7,7 @@ import { SparklesIcon } from "lucide-react";
  */
 import { useEffect, useState } from "react";
 import { type MessageKey, useT } from "../../core/i18n";
-import { useIsland } from "../../core/island";
+import { createStore, useIsland } from "../../core/island";
 import { type SettingDef, setSetting, useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 
@@ -39,10 +39,27 @@ export const RELEASE_NOTES: Record<string, { icon: string; text: MessageKey }[]>
 	],
 };
 
+/** Asked for from the right-click menu: the notes may open even when already read ("Got it" ends it). */
+export const notesAsked = createStore(false);
+
 /** The last version whose notes were seen. */
 const seen: SettingDef<string | null> = { key: "whatsnew.seen", label: "whatsnew.title", default: null };
 
 const notesOf = (version: string) => RELEASE_NOTES[version] ?? [];
+
+const parts = (v: string) => v.split(".").map((n) => Number.parseInt(n, 10) || 0);
+const newer = (a: string, b: string) => {
+	const [x, y] = [parts(a), parts(b)];
+	for (let i = 0; i < 3; i++) if ((x[i] ?? 0) !== (y[i] ?? 0)) return (x[i] ?? 0) > (y[i] ?? 0);
+	return false;
+};
+
+/** The latest version up to `version` that has notes (a small fix has none of its own). */
+export function notesVersion(version: string = __APP_VERSION__) {
+	return Object.keys(RELEASE_NOTES)
+		.filter((v) => !newer(v, version))
+		.sort((a, b) => (newer(a, b) ? -1 : 1))[0];
+}
 
 /** The notes of `version` as a list (also used on the About page). */
 export function ReleaseNotes({ version, className }: { version: string; className?: string }) {
@@ -68,13 +85,16 @@ function WhatsNewPanel() {
 		<div className="flex h-full flex-col gap-2 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="flex items-center gap-2">
 				<SparklesIcon size={16} color={ACCENT} />
-				<strong className="flex-1 truncate text-[14.5px]">{t("whatsnew.heading", { version: __APP_VERSION__ })}</strong>
+				<strong className="flex-1 truncate text-[14.5px]">
+					{t("whatsnew.heading", { version: notesVersion() ?? __APP_VERSION__ })}
+				</strong>
 				<button
 					type="button"
 					className="rounded-full px-3 py-1 text-[12px] font-bold text-white transition-[filter] hover:brightness-110"
 					style={{ background: ACCENT }}
 					onClick={() => {
 						setSetting(seen, __APP_VERSION__);
+						notesAsked.set(false);
 						collapse();
 					}}
 				>
@@ -82,7 +102,7 @@ function WhatsNewPanel() {
 				</button>
 			</div>
 			<div className="min-h-0 flex-1 overflow-y-auto" data-scroll>
-				<ReleaseNotes version={__APP_VERSION__} className="flex flex-col gap-1.5" />
+				<ReleaseNotes version={notesVersion() ?? __APP_VERSION__} className="flex flex-col gap-1.5" />
 			</div>
 		</div>
 	);
@@ -102,6 +122,7 @@ export const whatsNewModule: IslandModule = {
 			return () => window.clearTimeout(timer);
 		}, []);
 		const fresh = ready && last !== __APP_VERSION__ && notesOf(__APP_VERSION__).length > 0;
+		const asked = notesAsked.use();
 		const dismiss = () => setSetting(seen, __APP_VERSION__);
 
 		return {
@@ -132,6 +153,8 @@ export const whatsNewModule: IslandModule = {
 			celebrateKey: fresh && /^\d+\.0\.0$/.test(__APP_VERSION__) ? `whatsnew:${__APP_VERSION__}` : undefined,
 			// Opening the island goes to the notes until they are read.
 			attention: fresh,
+			// Read ("Got it"): reopening the island goes back to the usual tabs.
+			openable: fresh || asked,
 			menu: fresh ? [{ label: t("whatsnew.hide"), onSelect: dismiss }] : undefined,
 			expanded: <WhatsNewPanel />,
 			expandedSize: { width: 560, height: 280 },
