@@ -8,14 +8,32 @@ import { ArrowLeftIcon, ExternalLinkIcon, RotateCwIcon, SparklesIcon, XIcon } fr
  * it is closed with the X.
  */
 import { useEffect, useRef, useState } from "react";
+import { command } from "../../core/bridge";
 import { cn } from "../../core/cn";
+import { islandSize, SIZE_SCALE } from "../../core/extras";
 import { useT } from "../../core/i18n";
+import { useIsland } from "../../core/island";
+import { useSetting } from "../../core/settings";
 import type { IslandModule, ModuleView } from "../../core/types";
 import { AI_APPS, type AiApp, islandWebApp, useAiButtons, WEBAPPS_MODULE } from "../quicklaunch/ai";
 import { tools } from "../tools/bridge";
 
 const ACCENT = "#10A37F";
 const SIZE = { width: 640, height: 640 };
+/** The island window's height (`STRIP_HEIGHT` in `src-tauri/src/window.rs`). */
+const STRIP = 720;
+/** Room above the panel (the island's top gap) and under it (its shadow). */
+const MARGIN = 48;
+
+/**
+ * As big as `SIZE`, but never taller than the island window or the screen
+ * (a small laptop, or the island's "large" size scales the panel up).
+ */
+function webAppSize(scale: number) {
+	const room = Math.min(STRIP, window.screen?.availHeight || STRIP) - MARGIN;
+	const height = Math.max(320, Math.min(SIZE.height, Math.floor(room / scale)));
+	return { width: SIZE.width, height };
+}
 /** How often the panel checks where its box is (the island can move or animate). */
 const TRACK_MS = 120;
 
@@ -27,8 +45,13 @@ function WebAppBox({ app }: { app: AiApp }) {
 	const t = useT();
 	const box = useRef<HTMLDivElement>(null);
 	const [failed, setFailed] = useState(false);
+	// Another tab chosen or the island closing: hide at once, not after the panel's
+	// exit animation (the native page would sit on top of the next tab meanwhile).
+	const { tab, mode } = useIsland();
+	const shown = tab === WEBAPPS_MODULE && mode === "expanded";
 
 	useEffect(() => {
+		if (!shown) return;
 		let sent = "";
 		let previous = "";
 		const track = () => {
@@ -54,9 +77,12 @@ function WebAppBox({ app }: { app: AiApp }) {
 		const timer = window.setInterval(track, TRACK_MS);
 		return () => {
 			window.clearInterval(timer);
-			tools("webapp_hide").catch(() => undefined);
+			// Hidden (closed, another tab, island collapsed): the keyboard goes back to the app in use.
+			tools("webapp_hide")
+				.catch(() => undefined)
+				.finally(() => command("restore_focus"));
 		};
-	}, [app.id, app.url]);
+	}, [app.id, app.url, shown]);
 
 	return (
 		<div ref={box} className="relative min-h-0 flex-1 overflow-hidden rounded-[14px] bg-[#111]">
@@ -69,6 +95,12 @@ function WebAppBox({ app }: { app: AiApp }) {
 
 function WebAppView({ app }: { app: AiApp }) {
 	const t = useT();
+	const { keepOpen } = useIsland();
+	// Open while the web app is shown, wherever the pointer goes; another tab or ✕ ends it.
+	useEffect(() => {
+		keepOpen(true, WEBAPPS_MODULE);
+		return () => keepOpen(false, WEBAPPS_MODULE);
+	}, [keepOpen]);
 	const enabled = useAiButtons().map((b) => b.app);
 	const tabs = enabled.some((a) => a.id === app.id) ? enabled : [app, ...enabled];
 	const cmd = (what: string) => tools<string | null>(`webapp_${what}`, { id: app.id });
@@ -162,16 +194,14 @@ export const webAppsModule: IslandModule = {
 	settingsIcon: <SparklesIcon size={15} />,
 	useView(): ModuleView {
 		const open = !!islandWebApp.use();
+		const scale = SIZE_SCALE[useSetting(islandSize)] ?? 1;
 		return {
 			active: false,
 			priority: 0,
 			accent: ACCENT,
 			icon: <SparklesIcon size={15} color={ACCENT} />,
 			expanded: <WebAppsPanel />,
-			expandedSize: open ? SIZE : { width: 560, height: 130 },
-			// Typing in the web app must not close the island: it stays until the X.
-			forceExpanded: open,
-			attention: open,
+			expandedSize: open ? webAppSize(scale) : { width: 560, height: 130 },
 		};
 	},
 };

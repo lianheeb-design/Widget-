@@ -140,7 +140,7 @@ function useModuleEntries(modules: IslandModule[], settings: Settings): ModuleEn
 		modules
 			// biome-ignore lint/correctness/useHookAtTopLevel: the module registry is static, so the hook order is stable
 			.map((module) => ({ module, view: module.useView() }))
-			.filter(({ module }) => readSetting(settings, moduleEnabled(module))),
+			.filter(({ module, view }) => view.showWhenOff || readSetting(settings, moduleEnabled(module))),
 		(e) => e.module.id,
 		readSetting(settings, layoutSettings.order),
 	);

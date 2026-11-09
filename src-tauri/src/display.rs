@@ -126,7 +126,9 @@ fn target(app: &AppHandle, win: &WebviewWindow) -> Option<Monitor> {
 
 /// Window rect (physical px) that stretches the strip across `monitor`'s top.
 fn strip_rect(monitor: &Monitor) -> (PhysicalPosition<i32>, PhysicalSize<u32>) {
-    let height = (STRIP_HEIGHT * monitor.scale_factor()).round() as u32;
+    // Never taller than the screen (a small laptop at a high scale).
+    let height =
+        ((STRIP_HEIGHT * monitor.scale_factor()).round() as u32).min(monitor.size().height);
     (
         *monitor.position(),
         PhysicalSize::new(monitor.size().width, height),

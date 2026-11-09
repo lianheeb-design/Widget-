@@ -1,6 +1,6 @@
 import { LayoutGridIcon, SettingsIcon } from "lucide-react";
 import { motion, type Transition } from "motion/react";
-import type { CSSProperties, ReactNode } from "react";
+import { type CSSProperties, type ReactNode, useEffect, useRef } from "react";
 import { tv } from "tailwind-variants";
 import { command } from "../../core/bridge";
 import { useT } from "../../core/i18n";
@@ -10,12 +10,14 @@ import { LAUNCHER } from "../../core/useIslandController";
 const tabs = tv({
 	slots: {
 		base: "mb-2.5 flex gap-1",
-		tab: "relative flex h-7.5 items-center gap-1.75 rounded-[15px] pr-3 pl-2 text-[13px] font-semibold text-text-dim transition-colors duration-200 hover:text-text",
+		/** The module tabs: they scroll sideways instead of pushing the grid and gear out. */
+		list: "flex min-w-0 shrink gap-1 overflow-x-auto [scrollbar-width:none]",
+		tab: "relative flex h-7.5 flex-none items-center gap-1.75 rounded-[15px] pr-3 pl-2 text-[13px] font-semibold text-text-dim transition-colors duration-200 hover:text-text",
 		pill: "absolute inset-0 rounded-[inherit] bg-white/10",
 		part: "relative grid place-items-center",
 		dot: "relative size-1.25 rounded-full bg-ok",
 		extra: "ml-auto flex items-center gap-1.5",
-		gear: "grid size-7.5 place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
+		gear: "grid size-7.5 flex-none place-items-center rounded-full text-text-faint transition-colors duration-200 hover:bg-white/8 hover:text-text",
 	},
 	variants: {
 		active: { true: { tab: "text-text" } },
@@ -60,28 +62,44 @@ export function Tabs({
 }) {
 	const t = useT();
 	const s = tabs({ iconsOnly, bottom });
+	const list = useRef<HTMLDivElement>(null);
+	// The open tab scrolls into view when it changes (not on every render: that would fight the wheel).
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `current` is the trigger, read through the DOM
+	useEffect(() => {
+		list.current?.querySelector("[data-selected]")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+	}, [current]);
 	const pill = <motion.span layoutId="tab-pill" className={s.pill()} transition={transition} />;
 	return (
 		<div className={s.base()}>
-			{entries.map(({ module, view }) => {
-				const selected = current === module.id;
-				return (
-					<button
-						type="button"
-						key={module.id}
-						className={s.tab({ active: selected })}
-						title={t(module.title)}
-						style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
-						onClick={() => onSelect(module.id)}
-					>
-						{selected && pill}
-						<span className={s.part()}>{view.icon}</span>
-						{/* Many modules: only the open tab spells out its name. */}
-						{!iconsOnly && selected && <span className={s.part()}>{t(module.title)}</span>}
-						{view.active && !selected && <span className={s.dot()} />}
-					</button>
-				);
-			})}
+			<div
+				ref={list}
+				className={s.list()}
+				onWheel={(e) => {
+					// A mouse wheel scrolls the tabs sideways.
+					e.currentTarget.scrollLeft += e.deltaY;
+				}}
+			>
+				{entries.map(({ module, view }) => {
+					const selected = current === module.id;
+					return (
+						<button
+							type="button"
+							key={module.id}
+							data-selected={selected || undefined}
+							className={s.tab({ active: selected })}
+							title={t(module.title)}
+							style={{ "--tab-accent": view.accent ?? "#fff" } as CSSProperties}
+							onClick={() => onSelect(module.id)}
+						>
+							{selected && pill}
+							<span className={s.part()}>{view.icon}</span>
+							{/* Many modules: only the open tab spells out its name. */}
+							{!iconsOnly && selected && <span className={s.part()}>{t(module.title)}</span>}
+							{view.active && !selected && <span className={s.dot()} />}
+						</button>
+					);
+				})}
+			</div>
 			<button
 				type="button"
 				className={s.tab({ active: current === LAUNCHER, launcher: true })}

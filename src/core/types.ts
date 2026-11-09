@@ -49,6 +49,11 @@ export interface ModuleView {
 	attention?: boolean;
 	/** Keeps the island open until this module's required action is resolved. */
 	forceExpanded?: boolean;
+	/**
+	 * Shown even while the module is turned off: something it started that
+	 * must be dealt with (a ringing alarm needs its off button).
+	 */
+	showWhenOff?: boolean;
 }
 
 export interface IslandModule {

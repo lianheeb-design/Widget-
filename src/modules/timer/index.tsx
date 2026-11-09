@@ -225,6 +225,8 @@ export const timerModule: IslandModule = {
 				(timer.due ? `due:${timer.finishedAt}` : focus.state.switches ? `focus:${focus.state.switches}` : undefined),
 			attention: alarm.ringing || timer.due,
 			forceExpanded: alarm.ringing || timer.due,
+			// Alarms ring even with the timer turned off; the off button must show then too.
+			showWhenOff: alarm.ringing,
 		};
 	},
 };
