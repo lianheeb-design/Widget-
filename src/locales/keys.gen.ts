@@ -153,6 +153,7 @@ export type MessageKey =
 	| "weather.updated"
 	| "weather.rainSoon"
 	| "weather.rainIn"
+	| "weather.rainHide"
 	| "weather.rainAlert.label"
 	| "weather.rainAlert.desc"
 	| "weather.code.clear"

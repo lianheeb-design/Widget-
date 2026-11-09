@@ -250,6 +250,7 @@
     updated: "Updated {time}",
     rainSoon: "Rain coming",
     rainIn: "in {m} min",
+    rainHide: "Hide",
     rainAlert: {
       label: "Rain warning",
       desc: "When rain is coming within the hour, the island shows it.",

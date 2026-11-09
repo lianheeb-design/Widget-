@@ -227,6 +227,7 @@
     updated: "Aktualisiert {time}",
     rainSoon: "Regen kommt",
     rainIn: "in {m} Min",
+    rainHide: "Ausblenden",
     rainAlert: {
       label: "Regen-Warnung",
       desc: "Kommt in der nächsten Stunde Regen, steht es oben in der Insel.",
