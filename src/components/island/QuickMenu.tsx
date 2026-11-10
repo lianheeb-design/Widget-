@@ -8,9 +8,10 @@ import { type ReactNode, useEffect } from "react";
 import { command } from "../../core/bridge";
 import { cn } from "../../core/cn";
 import { useT } from "../../core/i18n";
-import { PROFILE_EMOJI, PROFILE_IDS, profileActive } from "../../core/profiles";
+import { PROFILE_IDS, profileActive } from "../../core/profiles";
 import { setSetting, useSetting } from "../../core/settings";
 import type { ModuleView } from "../../core/types";
+import { ProfileIcon } from "../ProfileIcon";
 
 export type MenuItem = NonNullable<ModuleView["menu"]>[number];
 
@@ -79,7 +80,7 @@ export function QuickMenu({
 									onClose();
 								}}
 							>
-								{id ? PROFILE_EMOJI[id] : t("profiles.all")}
+								{id ? <ProfileIcon id={id} /> : t("profiles.all")}
 							</button>
 						))}
 					</div>

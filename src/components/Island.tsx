@@ -24,6 +24,12 @@ import { Rim } from "./island/Rim";
 import { Surface } from "./island/Surface";
 import { useIslandFileDrop } from "./island/useIslandFileDrop";
 
+/** Room the right-click menu needs (px). */
+const MENU_WIDTH = 200;
+/** A shrink by more than this (px) settles without overshooting. */
+const SHRINK_CALM_FROM = 120;
+const CALM_SPRING = { type: "spring", stiffness: 380, damping: 42, mass: 0.9 } as const;
+
 export function Island() {
 	const ctl = useIslandController(modules);
 	const { mode, primary, secondary, focused } = ctl;
@@ -94,10 +100,19 @@ export function Island() {
 
 	// Confetti when a module celebrates (timer done, focus round finished).
 	const celebrate = fx.confetti ? (ctl.entries.find((e) => e.view.celebrateKey)?.view.celebrateKey ?? null) : null;
-	const transition = big ? v.expandSpring : v.shellSpring;
+	// Shrinking from a tall panel (an AI app, a chat) with the usual springs overshoots by
+	// dozens of pixels: the island briefly squashes below its size and wobbles. Settle instead.
+	const lastHeight = useRef(g.height);
+	const shrinking = fx.motion !== "off" && g.height < lastHeight.current - SHRINK_CALM_FROM;
+	useEffect(() => {
+		lastHeight.current = g.height;
+	}, [g.height]);
+	const transition = shrinking ? CALM_SPRING : big ? v.expandSpring : v.shellSpring;
 
 	const drag = useIslandDrag({
 		width: g.width,
+		height: g.height,
+		top: v.top,
 		leftExtra: g.ear + (resting ? ambientWidth(ctl.entries.filter((e) => e.view.ambient).length) : 0),
 		rightExtra: g.ear + (showSecondary ? BUBBLE_GAP + BUBBLE : 0),
 		canReturn: !big,
@@ -120,17 +135,21 @@ export function Island() {
 		setMenuAt(null);
 		keepOpen(false, "menu");
 	}, [keepOpen]);
+	const shown = big ? [focused] : [primary, showSecondary ? secondary : undefined];
+	const menuItems = shown.flatMap((e) => e?.view.menu ?? []);
 	const openMenu = (e: MouseEvent<HTMLElement>) => {
 		// Text fields and the like keep their own menu.
 		if ((e.target as Element).closest("input, textarea, select, [contenteditable]")) return;
 		e.preventDefault();
 		const box = e.currentTarget.getBoundingClientRect();
 		const zoom = box.width / e.currentTarget.offsetWidth || 1;
-		setMenuAt({ x: (e.clientX - box.left) / zoom, y: (e.clientY - box.top) / zoom });
+		// Kept on the screen next to an edge (its size, roughly: width and rows).
+		const items = 3 + menuItems.length;
+		const clientX = Math.min(e.clientX, window.innerWidth - MENU_WIDTH - 8);
+		const clientY = Math.min(e.clientY, window.innerHeight - (items * 31 + 16) - 8);
+		setMenuAt({ x: (clientX - box.left) / zoom, y: (clientY - box.top) / zoom });
 		keepOpen(true, "menu");
 	};
-	const shown = big ? [focused] : [primary, showSecondary ? secondary : undefined];
-	const menuItems = shown.flatMap((e) => e?.view.menu ?? []);
 
 	// The island is about to change shape: its clickable area must follow at once.
 	// biome-ignore lint/correctness/useExhaustiveDependencies: the dependencies are the triggers, not inputs
@@ -148,6 +167,8 @@ export function Island() {
 				{/* The tray's black hole: the island spins into its own center and comes back out. */}
 				<motion.div
 					className="pointer-events-none relative flex origin-top justify-center"
+					// Placed anywhere: its distance from the top.
+					style={{ y: drag.y }}
 					initial={false}
 					animate={swallowed ? { scale: 0, rotate: -200, opacity: 0 } : { scale, rotate: 0, opacity: 1 }}
 					transition={
@@ -181,7 +202,7 @@ export function Island() {
 						onClick={() => resting && ctl.expand()}
 					>
 						{/* Concave "ears" that blend the notch into the top edge of the screen. */}
-						{!windows && (
+						{!windows && !drag.floating && (
 							<>
 								<motion.span
 									className="pointer-events-none absolute top-0 right-full bg-[radial-gradient(circle_at_0_100%,transparent_70%,var(--island)_71%)]"
@@ -207,6 +228,7 @@ export function Island() {
 							rim={rim}
 							glow={glow}
 							sheen={sheen}
+							rounded={drag.floating}
 						>
 							{content.node}
 						</Surface>

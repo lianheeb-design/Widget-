@@ -101,20 +101,33 @@ export function useRoutines(): { dim: boolean } {
 	useEffect(() => {
 		const route = commute.route;
 		if (!due || !route) return;
-		setSetting(commuteDone, today());
-		const at = new Date();
-		transit<{ connections?: ApiConnection[] }>("connections", {
-			from: route.from.id,
-			to: route.to.id,
-			date: `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`,
-			time: hhmm(at),
-			limit: 1,
-		})
-			.then((r) => {
-				const next = r?.connections?.[0];
-				if (next) startLive(tripOf(next, route.from, route.to));
+		let timer = 0;
+		let cancelled = false;
+		// Offline right then (the PC just woke up): try again each minute while it's still due.
+		const attempt = () => {
+			const at = new Date();
+			transit<{ connections?: ApiConnection[] }>("connections", {
+				from: route.from.id,
+				to: route.to.id,
+				date: `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`,
+				time: hhmm(at),
+				limit: 1,
 			})
-			.catch(() => undefined);
+				.then((r) => {
+					const next = r?.connections?.[0];
+					if (cancelled || !next) return;
+					setSetting(commuteDone, today());
+					startLive(tripOf(next, route.from, route.to));
+				})
+				.catch(() => {
+					if (!cancelled) timer = window.setTimeout(attempt, 60_000);
+				});
+		};
+		attempt();
+		return () => {
+			cancelled = true;
+			window.clearTimeout(timer);
+		};
 	}, [due]);
 
 	return { dim: calmEvening };

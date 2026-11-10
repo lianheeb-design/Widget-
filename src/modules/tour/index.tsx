@@ -1,4 +1,4 @@
-import { CompassIcon } from "lucide-react";
+import { CompassIcon, HandIcon, LayoutGridIcon, MousePointerClickIcon, SettingsIcon } from "lucide-react";
 /**
  * Welcome tour: on a new install, the island opens with four short steps
  * on how to use it. It stays open until the last step or "Skip".
@@ -14,10 +14,10 @@ const ACCENT = "#0A84FF";
 const pending: SettingDef<boolean> = { key: TOUR_PENDING, label: "tour.title", default: false };
 
 const STEPS = [
-	{ icon: "👋", title: "tour.s1.title", text: "tour.s1.text" },
-	{ icon: "🗂️", title: "tour.s2.title", text: "tour.s2.text" },
-	{ icon: "🖱️", title: "tour.s3.title", text: "tour.s3.text" },
-	{ icon: "⚙️", title: "tour.s4.title", text: "tour.s4.text" },
+	{ Icon: HandIcon, title: "tour.s1.title", text: "tour.s1.text" },
+	{ Icon: LayoutGridIcon, title: "tour.s2.title", text: "tour.s2.text" },
+	{ Icon: MousePointerClickIcon, title: "tour.s3.title", text: "tour.s3.text" },
+	{ Icon: SettingsIcon, title: "tour.s4.title", text: "tour.s4.text" },
 ] as const;
 
 function TourPanel() {
@@ -31,7 +31,7 @@ function TourPanel() {
 		<div className="flex h-full flex-col gap-2 px-1" onClick={(e) => e.stopPropagation()}>
 			<div className="flex min-h-0 flex-1 items-center gap-4">
 				<span className="grid size-14 flex-none place-items-center rounded-[18px] bg-white/7 text-[30px]">
-					{s.icon}
+					<s.Icon size={26} color={ACCENT} />
 				</span>
 				<div className="flex min-w-0 flex-1 flex-col gap-1">
 					<strong className="text-[15.5px]">{t(s.title)}</strong>

@@ -1,4 +1,4 @@
-import { CalendarClockIcon, PinIcon, PinOffIcon, PlusIcon, XIcon } from "lucide-react";
+import { CalendarClockIcon, PartyPopperIcon, PinIcon, PinOffIcon, PlusIcon, XIcon } from "lucide-react";
 /** Countdowns: days left until dates the person cares about. */
 import { type ReactNode, useState } from "react";
 import { cn } from "../../core/cn";
@@ -87,7 +87,7 @@ export function CountdownPanel({ header }: { header?: ReactNode }) {
 								className="w-14 flex-none text-right text-[22px]/none tabular-nums"
 								style={{ color: days >= 0 ? ACCENT : undefined, opacity: days < 0 ? 0.45 : 1 }}
 							>
-								{days === 0 ? "🎉" : Math.abs(days)}
+								{days === 0 ? <PartyPopperIcon size={22} className="ml-auto" /> : Math.abs(days)}
 							</strong>
 							<div className="flex min-w-0 flex-1 flex-col">
 								<span className="truncate text-[13.5px] font-[650]">{c.name}</span>
@@ -183,7 +183,7 @@ export const countdownModule: IslandModule = {
 							right: (
 								<span className="text-[13px] font-bold whitespace-nowrap tabular-nums" style={{ color: ACCENT }}>
 									{pinDays === 0
-										? `${t("countdown.today")} 🎉`
+										? t("countdown.today")
 										: pinDays === 1
 											? t("countdown.tomorrow")
 											: t("countdown.short", { n: pinDays })}

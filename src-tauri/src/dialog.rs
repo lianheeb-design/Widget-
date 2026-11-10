@@ -128,7 +128,11 @@ unsafe fn pick_save_on_this_thread(name: &str, spec: &str, file: &str) -> Option
         let _ = CoInitializeEx(None, COINIT_APARTMENTTHREADED);
         let dialog: IFileSaveDialog =
             CoCreateInstance(&FileSaveDialog, None, CLSCTX_INPROC_SERVER).ok()?;
-        let (name, spec, file) = (HSTRING::from(name), HSTRING::from(spec), HSTRING::from(file));
+        let (name, spec, file) = (
+            HSTRING::from(name),
+            HSTRING::from(spec),
+            HSTRING::from(file),
+        );
         let filters = [COMDLG_FILTERSPEC {
             pszName: PCWSTR(name.as_ptr()),
             pszSpec: PCWSTR(spec.as_ptr()),

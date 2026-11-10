@@ -124,11 +124,33 @@ fn target(app: &AppHandle, win: &WebviewWindow) -> Option<Monitor> {
     Some(screens.swap_remove(preferred).monitor)
 }
 
-/// Window rect (physical px) that stretches the strip across `monitor`'s top.
-fn strip_rect(monitor: &Monitor) -> (PhysicalPosition<i32>, PhysicalSize<u32>) {
+/// "Place anywhere" (off by default): the island can be dragged over the
+/// whole screen, so its window covers the whole monitor instead of a strip.
+pub const FREE_PLACE_KEY: &str = "island.freePlace";
+
+fn free_place(app: &AppHandle) -> bool {
+    app.state::<crate::settings::Settings>()
+        .get(FREE_PLACE_KEY)
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false)
+}
+
+/// Window rect (physical px): a strip across `monitor`'s top, or the whole
+/// monitor when the island may be placed anywhere (`full`). Clicks outside
+/// the island pass through either way.
+fn strip_rect(monitor: &Monitor, full: bool) -> (PhysicalPosition<i32>, PhysicalSize<u32>) {
     // Never taller than the screen (a small laptop at a high scale).
-    let height =
-        ((STRIP_HEIGHT * monitor.scale_factor()).round() as u32).min(monitor.size().height);
+    let strip = (STRIP_HEIGHT * monitor.scale_factor()).round() as u32;
+    let height = if full {
+        // Down to the taskbar, and never the whole monitor: Windows takes a topmost
+        // window that covers the screen for a fullscreen app (and hides the taskbar).
+        let work = monitor.work_area();
+        let to_work_bottom =
+            (work.position.y + work.size.height as i32 - monitor.position().y).max(0) as u32;
+        to_work_bottom.min(monitor.size().height.saturating_sub(1))
+    } else {
+        strip.min(monitor.size().height)
+    };
     (
         *monitor.position(),
         PhysicalSize::new(monitor.size().width, height),
@@ -136,7 +158,7 @@ fn strip_rect(monitor: &Monitor) -> (PhysicalPosition<i32>, PhysicalSize<u32>) {
 }
 
 fn apply(win: &WebviewWindow, monitor: &Monitor) -> tauri::Result<()> {
-    let (position, size) = strip_rect(monitor);
+    let (position, size) = strip_rect(monitor, free_place(win.app_handle()));
     // Position first: crossing to a monitor with another scale makes Windows
     // resize the window on its own, and the size below then fixes it up.
     win.set_position(position)?;
@@ -170,7 +192,7 @@ pub fn spawn_placement(app: AppHandle) {
             let Some(monitor) = target(&app, &win) else {
                 continue;
             };
-            let rect = strip_rect(&monitor);
+            let rect = strip_rect(&monitor, free_place(&app));
             let (Ok(position), Ok(size)) = (win.outer_position(), win.outer_size()) else {
                 continue;
             };

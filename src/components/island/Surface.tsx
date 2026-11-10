@@ -16,6 +16,7 @@ export function Surface({
 	rim,
 	glow,
 	sheen,
+	rounded,
 	children,
 }: {
 	g: Geo;
@@ -28,6 +29,8 @@ export function Surface({
 	glow: { halo: string | null; pulse: string | null; breathe: string | null };
 	/** A new value sweeps a sheen over the island. */
 	sheen: string | null;
+	/** Round on top too (away from the top edge), whatever the look. */
+	rounded?: boolean;
 	children: ReactNode;
 }) {
 	const windows = look.style === "windows";
@@ -41,7 +44,7 @@ export function Surface({
 			)}
 			style={{ ...(windows ? glowStyle(look) : undefined), ...effect.style }}
 			initial={false}
-			animate={cornerRadius(g, windows)}
+			animate={cornerRadius(g, windows || !!rounded)}
 			transition={transition}
 		>
 			<AnimatePresence mode="popLayout" initial={false}>

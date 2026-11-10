@@ -1,6 +1,8 @@
 // Generated from en.json5 by vite-plugin-locales.ts — do not edit.
 export type MessageKey =
 	| "language.name"
+	| "settings.freePlace.label"
+	| "settings.freePlace.desc"
 	| "settings.advanced"
 	| "settings.subtitle"
 	| "settings.section.app"
@@ -412,6 +414,10 @@ export type MessageKey =
 	| "whatsnew.done"
 	| "whatsnew.hide"
 	| "whatsnew.none"
+	| "whatsnew.v110.place"
+	| "whatsnew.v110.smooth"
+	| "whatsnew.v110.look"
+	| "whatsnew.v110.fixes"
 	| "whatsnew.v100.hello"
 	| "whatsnew.v100.briefing"
 	| "whatsnew.v100.profiles"

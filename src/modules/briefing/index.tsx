@@ -1,4 +1,4 @@
-import { SunriseIcon } from "lucide-react";
+import { AlarmClockIcon, CalendarDaysIcon, CloudRainIcon, SunriseIcon, TrainFrontIcon } from "lucide-react";
 /**
  * Morning briefing: the first time someone is at the computer in the
  * morning, the island opens for a few seconds with the day at a glance —
@@ -7,7 +7,8 @@ import { SunriseIcon } from "lucide-react";
  */
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { useLocale, useT } from "../../core/i18n";
-import { createStore, useIsland } from "../../core/island";
+import { createStore, fullscreenActive, useIsland } from "../../core/island";
+import { calm } from "../../core/profiles";
 import {
 	moduleEnabled,
 	readSetting,
@@ -98,7 +99,7 @@ function NextTrain() {
 	const first = next.sections.find((s) => s.journey)?.journey;
 	const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(dep * 1000);
 	return (
-		<Line icon={<span>🚆</span>}>
+		<Line icon={<TrainFrontIcon size={15} color="#ff6b6b" />}>
 			{first && <LineBadge category={first.category} number={first.number} />}
 			<b className="tabular-nums">{time}</b>
 			<span className="truncate text-text-dim">
@@ -176,21 +177,22 @@ function BriefingPanel() {
 							{place ? ` · ${place.name}` : ""}
 						</span>
 						{rain && (
-							<span className="flex-none font-bold text-[#5AC8FA]">
-								🌧️ {t("weather.rainIn", { m: Math.max(1, Math.round(rain.inMs / 60_000)) })}
+							<span className="flex flex-none items-center gap-1 font-bold text-[#5AC8FA]">
+								<CloudRainIcon size={13} />
+								{t("weather.rainIn", { m: Math.max(1, Math.round(rain.inMs / 60_000)) })}
 							</span>
 						)}
 					</Line>
 				)}
 				<NextTrain />
 				{ringSoon && (
-					<Line icon={<span>⏰</span>}>
+					<Line icon={<AlarmClockIcon size={15} color="#FF9F0A" />}>
 						<b className="tabular-nums">{time.format(ring.at)}</b>
 						<span className="truncate text-text-dim">{ring.alarm.label || t("briefing.alarm")}</span>
 					</Line>
 				)}
 				{countdown && (
-					<Line icon={<span>📅</span>}>
+					<Line icon={<CalendarDaysIcon size={15} color="#FF375F" />}>
 						<b>{countdown.name}</b>
 						<span className="text-text-dim">
 							{countdown.days === 0 ? t("countdown.today") : t("countdown.inDays", { n: countdown.days })}
@@ -221,7 +223,8 @@ export const briefingModule: IslandModule = {
 			const check = () =>
 				tools<number | null>("idle_ms")
 					.then((idle) => {
-						if (idle === null || idle >= ACTIVE_MS) return;
+						// Not during a game or presentation, nor in a quiet profile: it would go unseen.
+						if (idle === null || idle >= ACTIVE_MS || fullscreenActive.get() || calm.get()) return;
 						setSetting(shownOn, today());
 						showing.set(`morning:${today()}`);
 					})

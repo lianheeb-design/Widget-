@@ -288,7 +288,7 @@ export function LivePanel() {
 								: t("transit.live.nextStop", { to: phase.leg.to }),
 							span(phase.seconds),
 						]
-					: [t("transit.live.arrived"), "🏁"];
+					: [t("transit.live.arrived"), <FlagIcon key="flag" size={28} color="#30D158" />];
 	const current =
 		phase.kind === "before" || phase.kind === "riding" ? phase.leg : phase.kind === "change" ? phase.next : null;
 

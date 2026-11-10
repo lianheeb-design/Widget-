@@ -18,24 +18,25 @@ const DELAY = 2500;
 export const WHATS_NEW = "whatsnew";
 
 /** What each version brings, newest first. */
-export const RELEASE_NOTES: Record<string, { icon: string; text: MessageKey }[]> = {
+export const RELEASE_NOTES: Record<string, MessageKey[]> = {
+	"1.1.0": ["whatsnew.v110.place", "whatsnew.v110.smooth", "whatsnew.v110.look", "whatsnew.v110.fixes"],
 	"1.0.0": [
-		{ icon: "🎉", text: "whatsnew.v100.hello" },
-		{ icon: "☀️", text: "whatsnew.v100.briefing" },
-		{ icon: "🎒", text: "whatsnew.v100.profiles" },
-		{ icon: "🔁", text: "whatsnew.v100.routines" },
-		{ icon: "🧹", text: "whatsnew.v100.tidy" },
-		{ icon: "🎮", text: "whatsnew.v100.games" },
-		{ icon: "💾", text: "whatsnew.v100.backup" },
-		{ icon: "🛟", text: "whatsnew.v100.healing" },
+		"whatsnew.v100.hello",
+		"whatsnew.v100.briefing",
+		"whatsnew.v100.profiles",
+		"whatsnew.v100.routines",
+		"whatsnew.v100.tidy",
+		"whatsnew.v100.games",
+		"whatsnew.v100.backup",
+		"whatsnew.v100.healing",
 	],
 	"0.7.0": [
-		{ icon: "🚆", text: "whatsnew.v070.live" },
-		{ icon: "🌧️", text: "whatsnew.v070.rain" },
-		{ icon: "📅", text: "whatsnew.v070.countdown" },
-		{ icon: "🔀", text: "whatsnew.v070.switch" },
-		{ icon: "🖱️", text: "whatsnew.v070.menu" },
-		{ icon: "⚡", text: "whatsnew.v070.speed" },
+		"whatsnew.v070.live",
+		"whatsnew.v070.rain",
+		"whatsnew.v070.countdown",
+		"whatsnew.v070.switch",
+		"whatsnew.v070.menu",
+		"whatsnew.v070.speed",
 	],
 };
 
@@ -68,10 +69,10 @@ export function ReleaseNotes({ version, className }: { version: string; classNam
 	if (notes.length === 0) return <p className="text-[12.5px] text-text-dim">{t("whatsnew.none")}</p>;
 	return (
 		<ul className={className}>
-			{notes.map((n) => (
-				<li key={n.text} className="flex gap-2.5 text-[12.5px] leading-snug">
-					<span className="w-5 flex-none text-center">{n.icon}</span>
-					<span className="min-w-0 flex-1">{t(n.text)}</span>
+			{notes.map((text) => (
+				<li key={text} className="flex gap-2.5 text-[12.5px] leading-snug">
+					<span className="mt-[0.45em] size-1.5 flex-none rounded-full" style={{ background: ACCENT }} />
+					<span className="min-w-0 flex-1">{t(text)}</span>
 				</li>
 			))}
 		</ul>

@@ -18,6 +18,7 @@ export function GeneralPage({ values }: { values: Record<string, unknown> }) {
 				{Object.values(generalSettings).map((def) => (
 					<ToggleRow key={def.key} def={def} value={readSetting(values, def)} />
 				))}
+				<ToggleRow def={positionSettings.freePlace} value={readSetting(values, positionSettings.freePlace)} />
 			</Card>
 			{/* Screens and dragging: rarely needed, folded away. */}
 			<Collapsible title={t("settings.advanced")}>

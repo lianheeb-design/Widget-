@@ -99,23 +99,27 @@ fn set_file_drag(win: &WebviewWindow, on: bool) {
     };
 
     FILE_DRAG.store(on, Ordering::Relaxed);
-    if on {
+    let w = win.clone();
+    // On the window's thread, like tao's own style changes (click-through…): a
+    // read-modify-write from here could race them and undo one.
+    let _ = win.run_on_main_thread(move || {
         // WebView2 may have made new windows since the last drag: hook them too.
-        let w = win.clone();
-        let _ = win.run_on_main_thread(move || crate::file_drop::hook(w.app_handle(), &w));
-    }
-    let Ok(hwnd) = win.hwnd() else {
-        return;
-    };
-    // The subclass puts `WS_EX_NOACTIVATE` back unless a drag is on.
-    unsafe {
-        let hwnd = HWND(hwnd.0);
-        SetWindowLongW(
-            hwnd,
-            GWL_EXSTYLE,
-            GetWindowLongW(hwnd, GWL_EXSTYLE) & !(WS_EX_NOACTIVATE.0 as i32),
-        );
-    }
+        if on {
+            crate::file_drop::hook(w.app_handle(), &w);
+        }
+        let Ok(hwnd) = w.hwnd() else {
+            return;
+        };
+        // The subclass puts `WS_EX_NOACTIVATE` back unless a drag is on.
+        unsafe {
+            let hwnd = HWND(hwnd.0);
+            SetWindowLongW(
+                hwnd,
+                GWL_EXSTYLE,
+                GetWindowLongW(hwnd, GWL_EXSTYLE) & !(WS_EX_NOACTIVATE.0 as i32),
+            );
+        }
+    });
 }
 
 #[cfg(not(windows))]
@@ -137,20 +141,24 @@ pub fn set_web_app_open(win: &WebviewWindow, on: bool) {
     if WEB_APP.swap(on, Ordering::Relaxed) == on {
         return;
     }
-    let Ok(hwnd) = win.hwnd() else {
-        return;
-    };
-    // Off: the subclass filter puts `WS_EX_NOACTIVATE` back on this rewrite.
-    unsafe {
-        let hwnd = HWND(hwnd.0);
-        let style = GetWindowLongW(hwnd, GWL_EXSTYLE);
-        let style = if on {
-            style & !(WS_EX_NOACTIVATE.0 as i32)
-        } else {
-            style
+    let w = win.clone();
+    // On the window's thread: see `set_file_drag`.
+    let _ = win.run_on_main_thread(move || {
+        let Ok(hwnd) = w.hwnd() else {
+            return;
         };
-        SetWindowLongW(hwnd, GWL_EXSTYLE, style);
-    }
+        // Off: the subclass filter puts `WS_EX_NOACTIVATE` back on this rewrite.
+        unsafe {
+            let hwnd = HWND(hwnd.0);
+            let style = GetWindowLongW(hwnd, GWL_EXSTYLE);
+            let style = if on {
+                style & !(WS_EX_NOACTIVATE.0 as i32)
+            } else {
+                style
+            };
+            SetWindowLongW(hwnd, GWL_EXSTYLE, style);
+        }
+    });
 }
 
 #[cfg(not(windows))]

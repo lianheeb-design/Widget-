@@ -12,6 +12,10 @@
 
   // Settings window
   settings: {
+    freePlace: {
+      label: "Place anywhere",
+      desc: "Drag the island anywhere on the screen, not just along the top. It stays where you let go. The tray icon’s “Recenter” brings it back to the top.",
+    },
     advanced: "Advanced",
     subtitle: "Settings",
     // Sidebar groups
@@ -135,7 +139,7 @@
     inLauncher: "Launcher only",
     autoTidy: {
       label: "Tidy up tabs",
-      desc: "Modules you haven’t opened in 2 weeks move to the grid (⊞). Pinned ones stay.",
+      desc: "Modules you haven’t opened in 2 weeks move to the “All modules” grid. Pinned ones stay.",
     },
   },
 
@@ -559,7 +563,7 @@
     },
     s2: {
       title: "Tabs and grid",
-      text: "Your modules are the tabs. The grid ⊞ has all of them. What you don’t use for a while tidies itself away there.",
+      text: "Your modules are the tabs. The “All modules” grid has all of them. What you don’t use for a while tidies itself away there.",
     },
     s3: {
       title: "Right-click and mouse wheel",
@@ -604,12 +608,18 @@
     done: "Got it",
     hide: "Hide",
     none: "No notes for this version.",
+    v110: {
+      place: "Place anywhere: turn it on in Settings → General to drag the island freely over the screen, down too. It stays where you let go.",
+      smooth: "Closing a big panel in the island (an AI app, say) now settles calmly, without squashing.",
+      look: "A calmer look: icons instead of emojis in the briefing, the tour, profiles and these notes.",
+      fixes: "Fixes: the right-click menu stays on screen at the edges, the morning briefing waits until your game is over, and the commute routine tries again when the internet was briefly gone.",
+    },
     v100: {
       hello: "Version 1.0 is here! The island is now smarter, more personal and tidier.",
       briefing: "Morning briefing: in the morning the island briefly shows weather, next train, alarm and countdown.",
       profiles: "Profiles (school, free time, gaming) choose which modules the island shows. Switch by right-clicking the island.",
       routines: "Routines: e.g. follow your route live every morning, or calmer evenings. In Settings → Profiles & routines.",
-      tidy: "Tidier: the countdown is now in the timer, the clipboard with the notes. Tabs you don’t open for 2 weeks move to the grid ⊞.",
+      tidy: "Tidier: the countdown is now in the timer, the clipboard with the notes. Tabs you don’t open for 2 weeks move to the “All modules” grid.",
       games: "During games and presentations the island stays away. Only an alarm or a finished timer comes through.",
       backup: "Back up and restore your settings, and search the settings.",
       healing: "If the island crashes, it restarts by itself. About has “Report a problem”.",

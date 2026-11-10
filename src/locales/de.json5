@@ -6,6 +6,10 @@
   },
 
   settings: {
+    freePlace: {
+      label: "Überall platzierbar",
+      desc: "Die Insel lässt sich über den ganzen Bildschirm ziehen, nicht nur am oberen Rand. Sie bleibt dort, wo du sie loslässt. Über das Insel-Symbol in der Taskleiste → „Zentrieren“ kommt sie wieder nach oben.",
+    },
     advanced: "Erweitert",
     subtitle: "Einstellungen",
     section: {
@@ -118,7 +122,7 @@
     inLauncher: "Nur im Launcher",
     autoTidy: {
       label: "Reiter automatisch aufräumen",
-      desc: "Module, die du 2 Wochen nicht geöffnet hast, wandern ins Raster (⊞). Fest angeheftete bleiben.",
+      desc: "Module, die du 2 Wochen nicht geöffnet hast, wandern ins Raster „Alle Module“. Fest angeheftete bleiben.",
     },
   },
 
@@ -536,7 +540,7 @@
     },
     s2: {
       title: "Reiter und Raster",
-      text: "Deine Module sind die Reiter. Alle findest du im Raster ⊞. Was du lange nicht brauchst, räumt sich von selbst dorthin.",
+      text: "Deine Module sind die Reiter. Alle findest du im Raster „Alle Module“. Was du lange nicht brauchst, räumt sich von selbst dorthin.",
     },
     s3: {
       title: "Rechtsklick und Mausrad",
@@ -581,12 +585,18 @@
     done: "Alles klar",
     hide: "Ausblenden",
     none: "Für diese Version gibt es keine Hinweise.",
+    v110: {
+      place: "Überall platzierbar: Unter Einstellungen → Allgemein lässt sich einschalten, dass du die Insel frei über den Bildschirm ziehen kannst, auch nach unten. Sie bleibt, wo du sie loslässt.",
+      smooth: "Schliesst du ein grosses Fenster in der Insel (z. B. eine KI-App), zieht sie sich jetzt ruhig zusammen, ohne zu verformen.",
+      look: "Ruhigeres Aussehen: Symbole statt Emojis in Briefing, Tour, Profilen und diesen Hinweisen.",
+      fixes: "Fehler behoben: Das Rechtsklick-Menü bleibt am Bildschirmrand sichtbar, das Morgen-Briefing wartet bis nach dem Spiel, und der Arbeitsweg versucht es erneut, wenn das Internet kurz fehlt.",
+    },
     v100: {
       hello: "Version 1.0 ist da! Die Insel ist jetzt schlauer, persönlicher und aufgeräumter.",
       briefing: "Morgen-Briefing: Am Morgen zeigt die Insel kurz Wetter, nächsten Zug, Wecker und Countdown.",
       profiles: "Profile (Schule, Freizeit, Gaming) bestimmen, welche Module die Insel zeigt. Wechseln per Rechtsklick auf die Insel.",
       routines: "Routinen: z. B. jeden Morgen deine Strecke automatisch live verfolgen, oder ruhigere Abende. Unter Einstellungen → Profile & Routinen.",
-      tidy: "Aufgeräumt: Der Countdown ist jetzt im Timer, die Zwischenablage bei den Notizen. Reiter, die du 2 Wochen nicht öffnest, wandern ins Raster ⊞.",
+      tidy: "Aufgeräumt: Der Countdown ist jetzt im Timer, die Zwischenablage bei den Notizen. Reiter, die du 2 Wochen nicht öffnest, wandern ins Raster „Alle Module“.",
       games: "Bei Spielen und Präsentationen bleibt die Insel weg. Nur ein Wecker oder ein fertiger Timer kommt noch durch.",
       backup: "Einstellungen sichern und wiederherstellen, und eine Suche in den Einstellungen.",
       healing: "Stürzt die Insel ab, startet sie von selbst neu. Unter Einstellungen → Über gibt es „Problem melden“.",

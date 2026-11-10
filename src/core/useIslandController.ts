@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { command, isTauri, useTauriEvent } from "./bridge";
 import { openDelay } from "./extras";
+import { fullscreenActive } from "./island";
 import { profileAllows } from "./profiles";
 import {
 	generalSettings,
@@ -216,6 +217,7 @@ function useFullscreen() {
 	useEffect(() => {
 		command<boolean>("is_fullscreen_active").then((v) => setFullscreen(!!v));
 	}, []);
+	useEffect(() => fullscreenActive.set(fullscreen), [fullscreen]);
 	return fullscreen;
 }
 

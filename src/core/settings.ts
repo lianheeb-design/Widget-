@@ -213,6 +213,13 @@ export function inOrder<T>(items: T[], idOf: (item: T) => string, order: string[
 
 /** Where the island goes after being dragged along the top edge. */
 export const positionSettings = {
+	/** The island can be dragged anywhere on the screen, not just along the top (off by default). */
+	freePlace: {
+		key: "island.freePlace",
+		label: "settings.freePlace.label",
+		description: "settings.freePlace.desc",
+		default: false as boolean,
+	} satisfies SettingDef,
 	returnToCenter: {
 		key: "island.returnToCenter",
 		label: "settings.returnToCenter.label",
@@ -249,6 +256,8 @@ export const monitorSettings = {
 
 /** Last drag offset from the center in CSS px (kept only when not returning). */
 export const ISLAND_OFFSET_KEY = "island.offset";
+/** Distance from the top in CSS px, when the island may be placed anywhere. */
+export const ISLAND_OFFSET_Y_KEY = "island.offsetY";
 
 /** Swallowed by the tray's black hole; written by the backend (`tray.rs`). */
 export const ISLAND_HIDDEN_KEY = "island.hidden";

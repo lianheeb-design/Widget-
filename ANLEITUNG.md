@@ -17,6 +17,7 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Wecker** (im Timer, neben Stoppuhr und Fokus): Weckzeiten einmalig oder an gewählten Wochentagen, mit Name. Beim Klingeln öffnet sich die Insel mit einem Windows-Weckton, bis du auf *Ausschalten* oder *Schlummern* klickst. Weckton und Schlummerdauer in *Einstellungen → Module → Timer*. Der Wecker klingelt, solange der PC an ist; aus dem Energiesparmodus weckt er ihn nicht.
 - **Ort und Haltestelle wählen**: Beim Wetter und bei den Abfahrten auf den Ortsnamen in der Insel klicken, tippen und den richtigen Treffer aus der Liste wählen. Zuletzt verwendete Orte stehen gleich zur Auswahl.
 - **Verbindungen** (im Modul *Abfahrten*, Ansicht *Verbindung*): Von und Nach eingeben, z. B. Altstätten SG → St. Gallen, und die nächsten Verbindungen mit Gleis, Verspätung, Dauer und Umstiegen sehen. Ein Klick zeigt, wo du umsteigst; mit ⭐ speicherst du Lieblingsstrecken.
+- **Überall platzierbar** (*Einstellungen → Allgemein*, standardmässig aus): Die Insel lässt sich frei über den Bildschirm ziehen, auch nach unten, und bleibt dort. Taskleisten-Symbol → *Zentrieren* bringt sie zurück nach oben.
 - **Version 1.0 – schlauer und aufgeräumter**:
   - **Morgen-Briefing**: Am Morgen, wenn du zum ersten Mal am PC bist, zeigt die Insel kurz Wetter, nächsten Zug, Wecker und Countdown.
   - **Profile** (Schule, Freizeit, Gaming): bestimmen, welche Module die Insel zeigt, auf Wunsch automatisch zu festen Zeiten. Wechseln per Rechtsklick auf die Insel. Gaming ist ruhig: keine Einblendungen ausser Wecker, Timer und Zug.

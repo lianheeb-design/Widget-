@@ -124,7 +124,10 @@ fn restart_after_crash() {
     }
     let _ = std::fs::write(&marker, b"");
     if let Ok(exe) = std::env::current_exe() {
-        match std::process::Command::new(exe).arg(AFTER_CRASH_FLAG).spawn() {
+        match std::process::Command::new(exe)
+            .arg(AFTER_CRASH_FLAG)
+            .spawn()
+        {
             Ok(_) => log::error!("crash: restarting"),
             Err(e) => log::error!("crash: could not restart: {e}"),
         }

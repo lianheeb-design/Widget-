@@ -48,5 +48,8 @@ export function createStore<T>(initial: T) {
 	};
 }
 
+/** A game, video or presentation fills the screen (the island keeps out of the way). */
+export const fullscreenActive = createStore(false);
+
 /** Files are being dragged over the island (the shelf shows up to take them). */
 export const draggingFiles = createStore(false);

@@ -3,12 +3,13 @@
  * switches itself on, plus the ready-made routines (morning briefing, the
  * way to school or work followed live, calmer evenings).
  */
+
+import { ProfileIcon } from "../../components/ProfileIcon";
 import { Card, Collapsible, Row } from "../../components/ui/card";
 import { Input, Segmented, Select } from "../../components/ui/form";
 import { cn } from "../../core/cn";
 import { useLocale, useT } from "../../core/i18n";
 import {
-	PROFILE_EMOJI,
 	PROFILE_IDS,
 	type ProfileId,
 	profileActive,
@@ -92,7 +93,7 @@ function ProfileCard({ id, values }: { id: ProfileId; values: Record<string, unk
 	const setSchedule = (next: Schedule | undefined) => setSetting(profileSchedule, { ...schedules, [id]: next });
 
 	return (
-		<Collapsible title={t(`profiles.name.${id}`)} icon={<span className="text-[15px]">{PROFILE_EMOJI[id]}</span>}>
+		<Collapsible title={t(`profiles.name.${id}`)} icon={<ProfileIcon id={id} size={15} />}>
 			<Row label={t("profiles.modules")} desc={t("profiles.modulesDesc")} />
 			<div className="flex flex-wrap gap-1.5 pb-3">
 				{pickable.map((m) => {
@@ -163,7 +164,7 @@ function CommuteCard({ values }: { values: Record<string, unknown> }) {
 
 	return (
 		<>
-			<Row as="label" label={`🚆 ${t("routines.commute.label")}`} desc={t("routines.commute.desc")}>
+			<Row as="label" label={t("routines.commute.label")} desc={t("routines.commute.desc")}>
 				<Toggle checked={commute.on} onChange={(on) => set({ on, route: commute.route ?? routes[0] ?? null })} />
 			</Row>
 			{commute.on && (
@@ -207,7 +208,7 @@ export function RoutinesPage({ values }: { values: Record<string, unknown> }) {
 					<Segmented
 						options={[
 							{ value: "all", label: t("profiles.all") },
-							...PROFILE_IDS.map((id) => ({ value: id, label: `${PROFILE_EMOJI[id]} ${t(`profiles.name.${id}`)}` })),
+							...PROFILE_IDS.map((id) => ({ value: id, label: t(`profiles.name.${id}`) })),
 						]}
 						value={active ?? "all"}
 						onChange={(v) => setSetting(profileActive, v === "all" ? null : (v as ProfileId))}
@@ -220,7 +221,7 @@ export function RoutinesPage({ values }: { values: Record<string, unknown> }) {
 
 			<Title>{t("routines.title")}</Title>
 			<Card>
-				<Row label={`☀️ ${t("briefing.label")}`} desc={t("briefing.desc")}>
+				<Row label={t("briefing.label")} desc={t("briefing.desc")}>
 					<div className="flex flex-none items-center gap-3">
 						<button
 							type="button"
@@ -236,7 +237,7 @@ export function RoutinesPage({ values }: { values: Record<string, unknown> }) {
 					</div>
 				</Row>
 				<CommuteCard values={values} />
-				<Row as="label" label={`🌙 ${t("routines.evening.label")}`} desc={t("routines.evening.desc")}>
+				<Row as="label" label={t("routines.evening.label")} desc={t("routines.evening.desc")}>
 					<Toggle checked={evening.on} onChange={(on) => setSetting(routineEvening, { ...evening, on })} />
 				</Row>
 				{evening.on && (

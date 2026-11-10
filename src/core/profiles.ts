@@ -8,7 +8,6 @@ import { readSetting, type SettingDef, type Values } from "./settings";
 
 export type ProfileId = "school" | "free" | "gaming";
 export const PROFILE_IDS: ProfileId[] = ["school", "free", "gaming"];
-export const PROFILE_EMOJI: Record<ProfileId, string> = { school: "🎒", free: "🏠", gaming: "🎮" };
 
 export interface Schedule {
 	/** 0 = Sunday … 6 = Saturday. */
