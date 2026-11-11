@@ -13,8 +13,11 @@ Every change MUST pass the same checks the CI runs (`.github/workflows/check.yml
 
 * Frontend lint: `bun run lint` (Biome, warnings fail too). `bun run lint:fix` applies the safe fixes.
 * Frontend build: `bun run build` (type-check + Vite build).
+* Backend format: `cargo fmt --check`, run in `src-tauri/` (`cargo fmt` fixes it).
 * Backend lint: `cargo clippy -- -D warnings`, run in `src-tauri/`.
 * Backend tests: `cargo test --lib`, run in `src-tauri/`.
+* Admin dashboard build: `bun install && bun run build`, run in `admin/`.
+* License backend tests: `bun install && bun test`, run in `supabase/tests/` (the SQL migrations on PGlite and the `license` Edge Function).
 
 Don't silence a lint rule to make it pass. If a rule really doesn't apply, use a `biome-ignore` / `#[allow(...)]` comment on that line with the reason, e.g. `// biome-ignore lint/correctness/useExhaustiveDependencies: mount only`.
 

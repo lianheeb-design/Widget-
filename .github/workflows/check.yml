@@ -1,0 +1,88 @@
+name: Check
+
+# Runs the checks from AGENTS.md ("Before committing") on every push and pull
+# request, so a broken change shows up right away instead of when a release is
+# built. Releases themselves are built by release.yml (tag pushes).
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    name: Frontend, admin dashboard, license backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint (Biome, warnings fail too)
+        run: bun run lint
+
+      - name: Build (type-check + Vite)
+        run: bun run build
+
+      - name: Admin dashboard build
+        working-directory: admin
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      # The migration's SQL on a real Postgres (PGlite) and the Edge Function.
+      - name: License backend tests
+        working-directory: supabase/tests
+        run: |
+          bun install --frozen-lockfile
+          bun test
+
+  backend:
+    name: Rust (clippy, tests)
+    # The app uses Windows APIs throughout.
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+
+      # `tauri::generate_context!` embeds the built frontend (`dist`).
+      - name: Build the frontend
+        run: |
+          bun install --frozen-lockfile
+          bun run build
+
+      # Installs the toolchain pinned in src-tauri/rust-toolchain.toml (with clippy and rustfmt).
+      - name: Install Rust
+        working-directory: src-tauri
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          shared-key: check
+          workspaces: src-tauri -> target
+
+      - name: Format
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Clippy
+        working-directory: src-tauri
+        run: cargo clippy -- -D warnings
+
+      # Tests that need a server (`#[ignore]`) don't run here.
+      - name: Tests
+        working-directory: src-tauri
+        run: cargo test --lib
