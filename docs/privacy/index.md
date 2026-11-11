@@ -1,13 +1,14 @@
 # Privacy Policy — Island for Windows
 
-*Last updated: October 26, 2026*
+*Last updated: November 11, 2026*
 
 Island for Windows ("the app") is a free, open-source desktop app published at [github.com/HeyyCzer/windows-island](https://github.com/HeyyCzer/windows-island). This policy explains what data the app touches, where it goes and how to remove it.
 
 ## The short version
 
-- The app runs entirely on your computer. **There is no server of ours**: no account, no analytics, no telemetry, no ads, no crash reporting.
-- We (the developers) **never receive any of your data**.
+- The app runs entirely on your computer. No account, no analytics, no telemetry, no ads, no crash reporting.
+- The one exception is the **access check** (when the build you received has it turned on): the app regularly tells the developer's server a random installation id and its version, and the server answers whether this installation may be used. Nothing else about you or your computer is sent. See [Access check](#access-check).
+- Apart from that, we (the developers) **never receive any of your data**.
 - When a feature needs an online service (Google Calendar, Spotify, GitHub, Anthropic, YouTube, update checks), the app talks to that service directly from your computer, and only after you turn that feature on.
 - We do not sell, rent or share your data with anyone.
 
@@ -16,6 +17,7 @@ Island for Windows ("the app") is a free, open-source desktop app published at [
 | Data | Where | Why |
 | --- | --- | --- |
 | Settings | `%APPDATA%\com.heyyczer.dynamicisland\settings.json` | Remember your preferences |
+| Installation id, its secret, and the server's last answer (access check) | Windows Credential Manager | Identify this installation to the access check, and keep working offline for a while |
 | Tokens and private links (Google Calendar and Spotify refresh tokens, GitHub token, private calendar feed URLs) | Windows Credential Manager | Keep secrets out of plain-text files |
 | Shelf items (paths to files you dropped, not the files) | `%APPDATA%\com.heyyczer.dynamicisland\shelf.json` | Keep the shelf between restarts |
 | Screenshots and attachments for Ask Claude, clipboard pictures | `%APPDATA%\com.heyyczer.dynamicisland\` and, when you choose to keep a picture, *Pictures\Screenshots* | Attach them to a question or let you drag them out |
@@ -25,7 +27,7 @@ The app reads, without uploading anywhere, information Windows and other apps al
 
 ## How your data is protected
 
-Because the app has no server, none of your data ever reaches us, so there is no database of ours that could leak. On your computer and on the way to the services you connect, the app protects it like this:
+Apart from the access check's installation records (see [Access check](#access-check)), none of your data ever reaches us, so there is no database of ours that could leak it. On your computer and on the way to the services you connect, the app protects it like this:
 
 - **Encrypted in transit.** Every request to Google, GitHub, Anthropic and YouTube uses HTTPS (TLS). Google user data is never sent over an unencrypted connection.
 - **Encrypted at rest.** Secrets (the Google refresh token, the GitHub token and private calendar feed URLs) are kept only in the Windows Credential Manager, which encrypts them with Windows Data Protection (DPAPI) tied to your Windows user account. They are never written to settings files, logs or any other plain-text file, and other Windows users on the same computer cannot read them.
@@ -81,6 +83,19 @@ To count open issues for the repositories you follow, the app calls `api.github.
 
 To play a muted copy of a YouTube video you are watching in your browser, the app searches `youtube.com` for the current track's title and artist. YouTube's privacy policy applies to that request.
 
+### Access check
+
+Builds that have the access check turned on (`src-tauri/license.json` has an endpoint) let the developer disable single installations, for example a copy passed on against their wishes, and enable them again.
+
+- **What is sent:** a random installation id (created on the first start, not derived from your hardware or anything about you), a random secret that proves the id is yours, a random one-time value (so old answers can't be replayed), and the app's version number. Nothing else: no name, no e-mail address, no hardware details, nothing about what you do with the app.
+- **When:** at startup, every 10 minutes while the app runs, when the internet connection comes back, and when you click *Check now* (Settings → About → Access).
+- **Where it goes:** over HTTPS to the developer's [Supabase](https://supabase.com) project. Supabase, as the hosting provider, sees the request like any web server does (including your IP address) and keeps short-lived request logs under [its own privacy policy](https://supabase.com/privacy).
+- **What is stored on the server:** the installation id, a one-way hash of its secret, its status (active or blocked), the app version, when it was first and last seen, and, if the developer blocks it, when, why (a note for the developer) and who did it, with a history of these changes.
+- **How it is used:** only to decide whether this installation may run and to let the developer manage installations. It is not used for analytics, advertising or anything else, and not shared.
+- **If the installation is blocked**, the island shows "Access disabled" and stops its own features. It doesn't touch anything else on your computer.
+- **Offline:** after a successful check the app keeps working for 24 hours without a connection; after that it asks for a connection.
+- **Your id:** Settings → About → Access shows it. To have the server's record deleted, contact the developer who gave you this build and quote the id.
+
 ### Updates
 
 The app checks GitHub Releases for new versions. GitHub sees a normal download request (such as your IP address), as with any website.
@@ -98,6 +113,7 @@ When the app talks to Google, Spotify, GitHub, Anthropic or YouTube, those compa
 - Disconnect Google Calendar or Spotify, or remove GitHub tokens and feeds, in **Settings**.
 - Uninstall the app and delete `%APPDATA%\com.heyyczer.dynamicisland`.
 - Disabling the Claude Code integration in **Settings** restores your previous `~/.claude/settings.json`.
+- Access check: the entries starting with `dynamic-island:license` in the Windows Credential Manager hold the installation id; the developer can delete the server's record on request (quote the id from Settings → About → Access).
 
 ## Children
 

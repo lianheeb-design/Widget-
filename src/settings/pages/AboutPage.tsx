@@ -3,7 +3,8 @@ import { AppLogo } from "../../components/icons";
 import { Button } from "../../components/ui/button";
 import { Card, Row } from "../../components/ui/card";
 import { command, providerAction } from "../../core/bridge";
-import { useT } from "../../core/i18n";
+import { useLocale, useT } from "../../core/i18n";
+import { refreshLicense, useLicense } from "../../core/license";
 import { notesVersion, ReleaseNotes } from "../../modules/whatsnew";
 
 type UpdateStatus =
@@ -53,6 +54,54 @@ function UpdateRow() {
 					{t("settings.about.updates.check")}
 				</Button>
 			)}
+		</Row>
+	);
+}
+
+/**
+ * Access (see `core/license.ts`): whether the developer's server confirmed
+ * this installation, its id (to quote when contacting the developer) and a
+ * button to check right away. Hidden in builds without the check.
+ */
+function LicenseRow() {
+	const t = useT();
+	const locale = useLocale();
+	const license = useLicense();
+	const [busy, setBusy] = useState(false);
+	if (!license?.installationId || license.state === "unmanaged") return null;
+
+	const time = (ms: number | null) =>
+		ms ? new Date(ms).toLocaleString(locale, { dateStyle: "medium", timeStyle: "short" }) : "–";
+	const state =
+		license.problem === "offline" && license.validUntil
+			? t("license.about.offline", { time: time(license.validUntil) })
+			: license.state === "active"
+				? t("license.about.active", { time: time(license.lastCheck) })
+				: t("license.about.pending");
+	const checking = busy || license.checking;
+
+	return (
+		<Row
+			label={t("license.about.label")}
+			desc={
+				<>
+					{state}
+					<br />
+					{t("license.installationId")}: <code className="select-all">{license.installationId}</code>
+				</>
+			}
+		>
+			<Button
+				disabled={checking}
+				onClick={() => {
+					setBusy(true);
+					refreshLicense()
+						.catch(() => undefined)
+						.finally(() => setBusy(false));
+				}}
+			>
+				{checking ? t("license.checking") : t("license.about.check")}
+			</Button>
 		</Row>
 	);
 }
@@ -107,6 +156,7 @@ export function AboutPage() {
 			</div>
 			<Card>
 				<UpdateRow />
+				<LicenseRow />
 				<Row label={t("settings.about.log.label")} desc={t("settings.about.log.desc")}>
 					<Button onClick={() => providerAction("tools", "open_log").catch(() => undefined)}>
 						{t("settings.about.log.open")}

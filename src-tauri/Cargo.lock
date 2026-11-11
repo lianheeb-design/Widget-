@@ -962,6 +962,7 @@ dependencies = [
  "json5",
  "log",
  "png 0.17.16",
+ "ring",
  "rrule",
  "serde",
  "serde_json",

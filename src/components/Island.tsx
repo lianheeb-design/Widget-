@@ -6,6 +6,7 @@ import { cn } from "../core/cn";
 import { islandFill, SIZE_SCALE, useDesktop, useExtras, useLook } from "../core/extras";
 import { useSyncLocale } from "../core/i18n";
 import { type IslandApi, IslandContext } from "../core/island";
+import { useLicense } from "../core/license";
 import { kickHitRects, useHitRects } from "../core/useHitRects";
 import { useIslandController } from "../core/useIslandController";
 import { useIslandDrag } from "../core/useIslandDrag";
@@ -19,6 +20,7 @@ import { islandContent } from "./island/content";
 import { Confetti, withMotion } from "./island/effects";
 import { ambientWidth, BUBBLE, BUBBLE_GAP, type Geo, geometry, variantOf } from "./island/geometry";
 import { launcherSize } from "./island/Launcher";
+import { LockedIsland } from "./island/LockedIsland";
 import { QuickMenu } from "./island/QuickMenu";
 import { Rim } from "./island/Rim";
 import { Surface } from "./island/Surface";
@@ -30,7 +32,19 @@ const MENU_WIDTH = 200;
 const SHRINK_CALM_FROM = 120;
 const CALM_SPRING = { type: "spring", stiffness: 380, damping: 42, mass: 0.9 } as const;
 
+/**
+ * The island, or, while this installation is locked (blocked by the
+ * developer, offline too long, outdated), only the lock message: none of the
+ * modules run then (see `core/license.ts`).
+ */
 export function Island() {
+	const license = useLicense();
+	// The backend's first snapshot is a few milliseconds away.
+	if (!license) return null;
+	return license.usable ? <UnlockedIsland /> : <LockedIsland status={license} />;
+}
+
+function UnlockedIsland() {
 	const ctl = useIslandController(modules);
 	const { mode, primary, secondary, focused } = ctl;
 	const look = useAppearance();

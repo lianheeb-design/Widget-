@@ -13,6 +13,7 @@ import { clipboard } from "./clipboard";
 import { startDemo } from "./demo";
 import { github } from "./github";
 import { logCall, type Mock } from "./kit";
+import { licenseMock } from "./license";
 import { monitor } from "./monitor";
 import { music } from "./music";
 import { notifications } from "./notifications";
@@ -23,6 +24,7 @@ import { tools } from "./tools";
 /** In DevTools order. */
 export const mocks: Mock[] = [
 	system,
+	licenseMock,
 	music,
 	claude.mock,
 	codex.mock,

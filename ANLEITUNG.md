@@ -18,6 +18,7 @@ Diese Version basiert auf dem Open-Source-Projekt
 - **Ort und Haltestelle wählen**: Beim Wetter und bei den Abfahrten auf den Ortsnamen in der Insel klicken, tippen und den richtigen Treffer aus der Liste wählen. Zuletzt verwendete Orte stehen gleich zur Auswahl.
 - **Verbindungen** (im Modul *Abfahrten*, Ansicht *Verbindung*): Von und Nach eingeben, z. B. Altstätten SG → St. Gallen, und die nächsten Verbindungen mit Gleis, Verspätung, Dauer und Umstiegen sehen. Ein Klick zeigt, wo du umsteigst; mit ⭐ speicherst du Lieblingsstrecken.
 - **Überall platzierbar** (*Einstellungen → Allgemein*, standardmässig aus): Die Insel lässt sich frei über den Bildschirm ziehen, auch nach unten, und bleibt dort. Taskleisten-Symbol → *Zentrieren* bringt sie zurück nach oben.
+- **Zugangsverwaltung**: Jede Installation meldet sich mit einer zufälligen ID bei deinem Supabase-Projekt. Im Admin-Dashboard (**`ADMIN-DASHBOARD.bat`**) siehst du alle Installationen und kannst einzelne sperren und wieder freigeben. Gesperrt zeigt die Insel «Zugriff deaktiviert» und schaltet ihre Funktionen ab. Einrichtung und Grenzen: `docs/licensing/EINRICHTEN.md`.
 - **Version 1.0 – schlauer und aufgeräumter**:
   - **Morgen-Briefing**: Am Morgen, wenn du zum ersten Mal am PC bist, zeigt die Insel kurz Wetter, nächsten Zug, Wecker und Countdown.
   - **Profile** (Schule, Freizeit, Gaming): bestimmen, welche Module die Insel zeigt, auf Wunsch automatisch zu festen Zeiten. Wechseln per Rechtsklick auf die Insel. Gaming ist ruhig: keine Einblendungen ausser Wecker, Timer und Zug.

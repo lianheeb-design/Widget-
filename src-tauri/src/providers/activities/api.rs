@@ -61,6 +61,10 @@ fn respond(req: Request, status: u16, payload: Option<Value>) {
 }
 
 fn route(activities: &Activities, req: &Request, body: &str) -> (u16, Option<Value>) {
+    // The installation was locked while running (see `license`).
+    if !crate::license::is_usable() {
+        return (423, Some(json!({ "error": "locked" })));
+    }
     let path = req
         .url()
         .split('?')

@@ -1,0 +1,10 @@
+# Supabase CLI settings for the island's license backend.
+# Deploy: npx supabase db push && npx supabase functions deploy license
+# (see docs/licensing/EINRICHTEN.md).
+
+project_id = "island-license"
+
+[functions.license]
+# The desktop app sends no Supabase key at all: the function authenticates each
+# installation by its own secret (see functions/license/handler.ts).
+verify_jwt = false

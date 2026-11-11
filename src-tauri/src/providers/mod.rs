@@ -90,6 +90,10 @@ pub async fn provider_action(
     action: String,
     payload: Option<Value>,
 ) -> Result<Value, String> {
+    // A locked installation does nothing (see `license`), except log the UI's errors.
+    if !crate::license::is_usable() && !(id == tools::PROVIDER_ID && action == "log_error") {
+        return Err("locked".into());
+    }
     let provider = providers
         .0
         .iter()

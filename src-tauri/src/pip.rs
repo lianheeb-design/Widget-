@@ -39,6 +39,9 @@ pub fn is_pip_open(app: AppHandle) -> bool {
 
 #[tauri::command]
 pub fn open_pip(app: AppHandle) -> Result<(), String> {
+    if !crate::license::is_usable() {
+        return Err("locked".into());
+    }
     if let Some(win) = app.get_webview_window(PIP_LABEL) {
         return win.set_focus().map_err(|e| e.to_string());
     }

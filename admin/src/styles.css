@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Same palette as the island's settings window. */
+@theme {
+	--color-bg: #0c0c10;
+	--color-panel: #121217;
+	--color-text: #f5f5f7;
+	--color-text-dim: rgba(245, 245, 247, 0.6);
+	--color-text-faint: rgba(245, 245, 247, 0.38);
+	--color-hairline: rgba(255, 255, 255, 0.08);
+	--color-accent: #0a84ff;
+	--color-ok: #30d158;
+	--color-danger: #ff453a;
+	--color-warn: #ff9f0a;
+	--font-sans: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+	--font-mono: "Cascadia Code", Consolas, ui-monospace, monospace;
+}
+
+:root {
+	color-scheme: dark;
+}
+
+html,
+body,
+#root {
+	min-height: 100%;
+}
+
+body {
+	margin: 0;
+	background: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
+}

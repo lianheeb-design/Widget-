@@ -644,6 +644,45 @@
     none: "You have the latest version.",
   },
 
+  // Access check: shown instead of the island when this installation may not
+  // be used (see src-tauri/src/license). No technical details on purpose.
+  license: {
+    blocked: {
+      short: "Access disabled",
+      title: "Access disabled",
+      body: "This installation has been disabled by the operator.",
+      hint: "Please contact the developer if you believe this is a mistake.",
+    },
+    expired: {
+      short: "Connection needed",
+      title: "Connection needed",
+      body: "The island couldn’t confirm its access for a while.",
+      hint: "Connect this PC to the internet; the island continues on its own.",
+    },
+    outdated: {
+      short: "Update required",
+      title: "Update required",
+      body: "This version is no longer supported.",
+      hint: "Install the latest update to keep using the island.",
+    },
+    check: "Check again",
+    checking: "Checking…",
+    install: "Install update",
+    installationId: "Installation ID",
+    copy: "Copy",
+    copied: "Copied",
+    // About page
+    about: {
+      label: "Access",
+      // {time}: date and time of the last confirmation
+      active: "Active · last confirmed {time}",
+      pending: "Not confirmed yet",
+      // {time}: until when the island runs without a connection
+      offline: "Offline · works without a connection until {time}",
+      check: "Check now",
+    },
+  },
+
   extras: {
     theme: {
       label: "Themes",

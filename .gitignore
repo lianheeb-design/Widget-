@@ -6,6 +6,11 @@ src-tauri/gen
 .playwright-mcp
 
 .env
+.env.*
+!.env.example
+# Supabase CLI working files
+supabase/.temp
+supabase/.branches
 
 *.tsbuildinfo
 
@@ -19,3 +24,5 @@ updates-einrichten-log.txt
 update-veroeffentlichen-log.txt
 Dynamic-Island-Deutsch-Setup.exe
 aenderungen.patch
+# Private signing key on its way to Supabase (scripts/license-keygen.ts --secret-file)
+license-secret.env

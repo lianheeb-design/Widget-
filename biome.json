@@ -6,7 +6,19 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["src/**", "scripts/**", "*.ts", "*.json", "!!**/dist"]
+		"includes": [
+			"src/**",
+			"scripts/**",
+			"*.ts",
+			"*.json",
+			"admin/src/**",
+			"admin/*.ts",
+			"admin/*.json",
+			"supabase/functions/**",
+			"supabase/tests/*.ts",
+			"supabase/tests/package.json",
+			"!!**/dist"
+		]
 	},
 	"formatter": {
 		"enabled": true,

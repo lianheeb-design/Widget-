@@ -3,10 +3,12 @@ import { motion } from "motion/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
 import { useSyncLocale, useT } from "../core/i18n";
+import { useLicense } from "../core/license";
 import { useSettings } from "../core/settings";
 import { NavItem, NavSection } from "./components/NavItem";
 import { SettingsSearch } from "./components/SettingsSearch";
 import { TitleBar } from "./components/TitleBar";
+import { LockedSettings } from "./LockedSettings";
 import { AboutPage } from "./pages/AboutPage";
 import { AppearancePage } from "./pages/AppearancePage";
 import { GeneralPage } from "./pages/GeneralPage";
@@ -19,9 +21,17 @@ import { ShortcutsPage } from "./pages/ShortcutsPage";
  * Settings window: frameless, with a sidebar in two groups — the app itself
  * (general, appearance) and the island's modules (one page listing them all,
  * each opening its own settings) — plus about. Pages are routes in a
- * `MemoryRouter`, since the window has no URL.
+ * `MemoryRouter`, since the window has no URL. A locked installation gets
+ * only the lock message (see `core/license.ts`).
  */
 export function SettingsApp() {
+	const license = useLicense();
+	// The backend's first snapshot is a few milliseconds away.
+	if (!license) return null;
+	return license.usable ? <SettingsPages /> : <LockedSettings status={license} />;
+}
+
+function SettingsPages() {
 	const values = useSettings();
 	const t = useT();
 	useSyncLocale();

@@ -5,6 +5,7 @@ use serde_json::{Map, Value};
 fn main() {
     embed_locales();
     embed_identifier();
+    check_license_config();
     println!("cargo:rerun-if-changed=app.manifest");
     // Tauri's default manifest plus the `<msix>` link to the sparse package
     // that lets the island read Windows notifications.
@@ -55,6 +56,48 @@ fn embed_identifier() {
         .as_str()
         .unwrap_or_else(|| panic!("{file}: no identifier"));
     println!("cargo:rustc-env=APP_IDENTIFIER={id}");
+}
+
+/// `license.json` (the license server, see `src/license/config.rs`) is baked
+/// into the app. A broken file fails the build instead of shipping an app
+/// that silently skips the license check.
+fn check_license_config() {
+    let file = "license.json";
+    println!("cargo:rerun-if-changed={file}");
+    let text = std::fs::read_to_string(file).unwrap_or_else(|_| panic!("{file} not found"));
+    let conf: Value =
+        serde_json::from_str(&text).unwrap_or_else(|e| panic!("{file}: invalid JSON: {e}"));
+    let endpoint = conf["endpoint"]
+        .as_str()
+        .unwrap_or_else(|| panic!("{file}: \"endpoint\" must be a string"));
+    let keys = conf["publicKeys"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{file}: \"publicKeys\" must be a list"));
+    if endpoint.is_empty() {
+        return; // license check turned off
+    }
+    assert!(
+        endpoint.starts_with("https://"),
+        "{file}: \"endpoint\" must start with https://"
+    );
+    assert!(
+        !keys.is_empty(),
+        "{file}: \"publicKeys\" needs the key from `bun scripts/license-keygen.ts`"
+    );
+    for key in keys {
+        let key = key
+            .as_str()
+            .unwrap_or_else(|| panic!("{file}: public keys must be strings"));
+        // 32 bytes in standard base64.
+        assert!(
+            key.len() == 44
+                && key.ends_with('=')
+                && key[..43]
+                    .chars()
+                    .all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/'),
+            "{file}: \"{key}\" is not an Ed25519 public key (44 base64 characters)"
+        );
+    }
 }
 
 /// Generates `$OUT_DIR/locales.rs`: every `src/locales/*.json5` as

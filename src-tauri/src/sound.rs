@@ -9,6 +9,10 @@ use tauri::{AppHandle, Manager};
 /// One of Windows' sounds by alias (`HKCU\AppEvents\EventLabels`), e.g.
 /// "Notification.Reminder"; nothing when the user turned it off.
 pub fn system(alias: &str) {
+    // Silent while the installation is locked (see `license`).
+    if !crate::license::is_usable() {
+        return;
+    }
     #[cfg(windows)]
     unsafe {
         use windows::Win32::Media::Audio::{PlaySoundW, SND_ALIAS, SND_ASYNC, SND_NODEFAULT};
@@ -21,6 +25,9 @@ pub fn system(alias: &str) {
 
 /// Plays an audio file in the background; overlapping calls play together.
 pub fn file(path: &Path) {
+    if !crate::license::is_usable() {
+        return;
+    }
     static NEXT: AtomicU32 = AtomicU32::new(0);
     let alias = format!("island-sound-{}", NEXT.fetch_add(1, Ordering::Relaxed));
     let path = path.to_string_lossy().replace('"', "");
@@ -38,6 +45,9 @@ pub fn file(path: &Path) {
 /// Plays an audio file on this thread until it ends; `false` when it can't be
 /// played.
 pub fn play_blocking(path: &Path) -> bool {
+    if !crate::license::is_usable() {
+        return false;
+    }
     static NEXT: AtomicU32 = AtomicU32::new(0);
     let alias = format!("island-blocking-{}", NEXT.fetch_add(1, Ordering::Relaxed));
     let path = path.to_string_lossy().replace('"', "");

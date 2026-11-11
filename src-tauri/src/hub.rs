@@ -32,7 +32,9 @@ impl Hub {
         }
     }
 
-    /// Store and broadcast a provider's state (deduplicated).
+    /// Store and broadcast a provider's state (deduplicated). While the
+    /// installation is locked (see `license`) the island only gets its own
+    /// state.
     pub fn publish(&self, id: &str, data: impl Serialize) {
         let value = serde_json::to_value(data).unwrap_or(Value::Null);
         {
@@ -42,13 +44,30 @@ impl Hub {
             }
             state.insert(id.to_string(), value.clone());
         }
-        let _ = self.app.emit(UPDATE_EVENT, Update { id, data: &value });
+        if crate::license::allows(id) {
+            let _ = self.app.emit(UPDATE_EVENT, Update { id, data: &value });
+        }
+    }
+
+    /// Sends every stored state again (after unlocking: what was held back).
+    pub fn resync(&self) {
+        for (id, data) in self.snapshot() {
+            let _ = self.app.emit(
+                UPDATE_EVENT,
+                Update {
+                    id: &id,
+                    data: &data,
+                },
+            );
+        }
     }
 
     /// Fire-and-forget event for high-frequency data that should not be cached
     /// (e.g. audio levels).
     pub fn transient(&self, event: &str, payload: impl Serialize + Clone) {
-        let _ = self.app.emit(event, payload);
+        if crate::license::is_usable() {
+            let _ = self.app.emit(event, payload);
+        }
     }
 
     pub fn app(&self) -> &AppHandle {
@@ -56,6 +75,11 @@ impl Hub {
     }
 
     pub fn snapshot(&self) -> HashMap<String, Value> {
-        self.state.lock().unwrap().clone()
+        let state = self.state.lock().unwrap();
+        state
+            .iter()
+            .filter(|(id, _)| crate::license::allows(id))
+            .map(|(id, data)| (id.clone(), data.clone()))
+            .collect()
     }
 }

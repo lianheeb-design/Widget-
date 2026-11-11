@@ -621,6 +621,40 @@
     none: "Du hast die neuste Version.",
   },
 
+  license: {
+    blocked: {
+      short: "Zugriff deaktiviert",
+      title: "Zugriff deaktiviert",
+      body: "Diese Installation wurde vom Betreiber deaktiviert.",
+      hint: "Bitte kontaktiere den Entwickler, wenn du glaubst, dass dies ein Fehler ist.",
+    },
+    expired: {
+      short: "Verbindung nötig",
+      title: "Verbindung nötig",
+      body: "Die Insel konnte ihre Freigabe länger nicht bestätigen.",
+      hint: "Verbinde den PC mit dem Internet, dann geht es von selbst weiter.",
+    },
+    outdated: {
+      short: "Update nötig",
+      title: "Update nötig",
+      body: "Diese Version wird nicht mehr unterstützt.",
+      hint: "Installiere das neuste Update, um die Insel weiter zu verwenden.",
+    },
+    check: "Erneut prüfen",
+    checking: "Wird geprüft…",
+    install: "Update installieren",
+    installationId: "Installations-ID",
+    copy: "Kopieren",
+    copied: "Kopiert",
+    about: {
+      label: "Zugang",
+      active: "Aktiv · zuletzt bestätigt {time}",
+      pending: "Noch nicht bestätigt",
+      offline: "Offline · läuft ohne Verbindung bis {time}",
+      check: "Jetzt prüfen",
+    },
+  },
+
   extras: {
     theme: {
       label: "Themen",

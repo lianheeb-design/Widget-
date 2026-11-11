@@ -1,9 +1,11 @@
 mod autostart;
 mod dialog;
 mod display;
+mod features;
 mod file_drop;
 mod hub;
 mod i18n;
+mod license;
 mod logfile;
 mod pip;
 mod portable;
@@ -25,6 +27,7 @@ use tauri_plugin_global_shortcut::ShortcutState;
 use hub::Hub;
 use providers::Providers;
 
+pub use license::RESTART_FLAG as LICENSE_RESTART_FLAG;
 pub use logfile::AFTER_CRASH_FLAG;
 pub use providers::claude::statusline::BRIDGE_FLAG as STATUSLINE_BRIDGE_FLAG;
 pub use providers::claude::statusline::run_bridge as run_statusline_bridge;
@@ -40,8 +43,9 @@ pub fn run() {
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, shortcut, event| {
-                    // See `providers/shortcuts.rs`.
+                    // See `providers/shortcuts.rs`. Off while the installation is locked.
                     if event.state() == ShortcutState::Pressed
+                        && license::is_usable()
                         && let Some(target) = providers::shortcuts::event_for(shortcut)
                     {
                         match target {
@@ -64,20 +68,19 @@ pub fn run() {
             logfile::init(&handle);
             app.manage(settings::Settings::load(&handle));
 
-            let hub = Arc::new(Hub::new(handle.clone()));
-            let providers = providers::registry();
-            for provider in &providers {
-                provider.clone().start(hub.clone());
-            }
-            app.manage(hub);
-            app.manage(Providers(providers));
+            app.manage(Arc::new(Hub::new(handle.clone())));
+            app.manage(Providers(providers::registry()));
+            // A locked installation starts without its features (see `license`).
+            let usable = license::init(&handle);
 
             if let Some(win) = app.get_webview_window(window::ISLAND_LABEL) {
                 window::make_overlay(&win);
                 display::place(&win)?;
                 win.set_ignore_cursor_events(true)?;
                 win.show()?;
-                file_drop::hook(&handle, &win);
+            }
+            if usable {
+                features::start(&handle);
             }
             window::spawn_hit_test(handle.clone());
             display::spawn_placement(handle.clone());
@@ -85,6 +88,7 @@ pub fn run() {
             tray::setup(&handle)?;
             tray::enable_autostart_on_first_run(&handle);
             updater::spawn(handle.clone());
+            license::spawn(handle.clone());
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
@@ -107,6 +111,8 @@ pub fn run() {
             settings::import_settings,
             updater::check_update,
             updater::install_update,
+            license::license_status,
+            license::license_refresh,
             i18n::set_locale,
             pip::open_pip,
             pip::close_pip,
