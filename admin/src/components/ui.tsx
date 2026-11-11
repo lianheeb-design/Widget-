@@ -57,6 +57,19 @@ export function OnlineDot({ lastSeen }: { lastSeen: string | null }) {
 	);
 }
 
+/** The computer's name; versions before 1.2.1 don't send one. */
+export function DeviceName({ name, className = "" }: { name: string | null; className?: string }) {
+	return name ? (
+		<span className={`truncate font-semibold ${className}`} title={name}>
+			{name}
+		</span>
+	) : (
+		<span className={`text-text-faint italic ${className}`} title="Erst ab App-Version 1.2.1 bekannt">
+			Gerät unbekannt
+		</span>
+	);
+}
+
 export function CopyButton({ text, label = "Kopieren" }: { text: string; label?: string }) {
 	const [copied, setCopied] = useState(false);
 	return (

@@ -110,7 +110,7 @@ export function Dashboard({ email, onSignOut }: { email: string; onSignOut: () =
 						type="search"
 						value={search}
 						onChange={(e) => setSearch(e.target.value)}
-						placeholder="Suchen: ID, Version oder Sperrgrund"
+						placeholder="Suchen: Gerät, ID, Version oder Sperrgrund"
 						aria-label="Installationen suchen"
 						className="h-9 w-full rounded-xl bg-panel pr-3 pl-9 text-[13.5px] outline-none shadow-[inset_0_0_0_1px_var(--color-hairline)] placeholder:text-text-faint focus:shadow-[inset_0_0_0_1.5px_var(--color-accent)]"
 					/>

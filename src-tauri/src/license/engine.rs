@@ -111,6 +111,9 @@ struct Request<'a> {
     secret: &'a str,
     nonce: &'a str,
     app_version: &'a str,
+    /// The computer's name, so the developer can tell which PC this is.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    device_name: Option<&'a str>,
 }
 
 #[derive(Deserialize)]
@@ -123,6 +126,7 @@ pub struct Engine<V: Vault, T: Transport> {
     vault: V,
     transport: T,
     version: String,
+    device_name: Option<String>,
     identity: Identity,
     answer: Option<Answer>,
     /// Latest local time seen (a clock turned back shows up against it).
@@ -166,6 +170,7 @@ impl<V: Vault, T: Transport> Engine<V, T> {
             vault,
             transport,
             version: version.to_string(),
+            device_name: None,
             identity,
             answer,
             seen: saved.seen,
@@ -173,6 +178,12 @@ impl<V: Vault, T: Transport> Engine<V, T> {
             last_success: None,
             problem: None,
         })
+    }
+
+    /// The computer's name to send with each check (shown in the dashboard).
+    pub fn with_device_name(mut self, name: Option<String>) -> Self {
+        self.device_name = name.and_then(|n| clean_device_name(&n));
+        self
     }
 
     pub fn installation_id(&self) -> &str {
@@ -255,6 +266,7 @@ impl<V: Vault, T: Transport> Engine<V, T> {
             secret: &self.identity.secret,
             nonce: &nonce,
             app_version: &self.version,
+            device_name: self.device_name.as_deref(),
         })
         .map_err(|_| Problem::Invalid)?;
 
@@ -331,6 +343,20 @@ impl<V: Vault, T: Transport> Engine<V, T> {
             }
         }
     }
+}
+
+/// A computer name fit to send: printable, trimmed, at most 64 characters.
+pub fn clean_device_name(raw: &str) -> Option<String> {
+    let name: String = raw
+        .chars()
+        .filter(|c| !c.is_control())
+        .collect::<String>()
+        .trim()
+        .chars()
+        .take(64)
+        .collect();
+    let name = name.trim();
+    (!name.is_empty()).then(|| name.to_string())
 }
 
 fn read_saved(vault: &impl Vault) -> Saved {
@@ -512,8 +538,23 @@ mod tests {
         assert_eq!(request["installationId"], e.installation_id());
         assert_eq!(request["appVersion"], "1.2.0");
         assert_eq!(request["secret"].as_str().unwrap().len(), 43);
-        // Nothing else is sent: no name, no hardware details.
+        // Nothing else is sent: no account, no hardware details.
         assert_eq!(request.as_object().unwrap().len(), 4);
+    }
+
+    #[test]
+    fn sends_the_computer_name_when_given() {
+        let (server, vault) = (FakeServer::new(), MemoryVault::default());
+        let mut e =
+            engine(&server, &vault, T0).with_device_name(Some(" LIAN-\u{7}LAPTOP\n".into()));
+        server.reply(Reply::Status("active"));
+        e.check(T0).unwrap();
+        let request = &server.requests.lock().unwrap()[0];
+        assert_eq!(request["deviceName"], "LIAN-LAPTOP");
+        assert_eq!(request.as_object().unwrap().len(), 5);
+
+        assert_eq!(clean_device_name(&"é".repeat(70)), Some("é".repeat(64)));
+        assert_eq!(clean_device_name("  \t "), None);
     }
 
     #[test]

@@ -2,7 +2,7 @@ import { BanIcon, CircleCheckIcon, PlusCircleIcon, XIcon } from "lucide-react";
 import { type ReactNode, useEffect, useState } from "react";
 import { ApiError, getInstallation, type Installation, type InstallationEvent } from "../lib/api";
 import { formatAgo, formatDate } from "../lib/format";
-import { Button, CopyButton, ErrorBanner, OnlineDot, Spinner, StatusBadge } from "./ui";
+import { Button, CopyButton, DeviceName, ErrorBanner, OnlineDot, Spinner, StatusBadge } from "./ui";
 
 const EVENTS: Record<InstallationEvent["event"], { label: string; icon: ReactNode; tone: string }> = {
 	REGISTERED: { label: "Registriert", icon: <PlusCircleIcon size={14} />, tone: "text-[#64b5ff] bg-accent/15" },
@@ -59,6 +59,10 @@ export function DetailPanel({
 				{!item && !error && <Spinner label="Wird geladen…" />}
 				{item && data && (
 					<div className="flex flex-col gap-5">
+						<div className="flex flex-col gap-1">
+							<span className="text-[11.5px] font-semibold tracking-wide text-text-faint uppercase">Gerät</span>
+							<DeviceName name={item.device_name} className="text-[17px]" />
+						</div>
 						<div className="flex flex-col gap-2">
 							<span className="text-[11.5px] font-semibold tracking-wide text-text-faint uppercase">
 								Installations-ID

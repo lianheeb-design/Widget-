@@ -9,6 +9,8 @@ export type InstallationStatus = "ACTIVE" | "BLOCKED";
 
 export interface Installation {
 	installation_id: string;
+	/** The computer's name (sent by app 1.2.1 and newer). */
+	device_name: string | null;
 	status: InstallationStatus;
 	created_at: string;
 	last_seen: string | null;

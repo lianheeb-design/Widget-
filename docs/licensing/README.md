@@ -51,9 +51,13 @@ every check that the request comes from that installation, so knowing an
 installation id (for example from a support request) is not enough to act as
 that installation.
 
-No account, no name, no e-mail address, no hardware fingerprint. A request
-contains exactly: installation id, secret, a fresh random nonce, and the app
-version.
+No account, no e-mail address, no hardware fingerprint. A request contains
+exactly: installation id, secret, a fresh random nonce, the app version and,
+from app 1.2.1 on, the computer's name (`COMPUTERNAME`, as set in Windows),
+so the developer can tell in the dashboard which PC an installation runs on.
+The name often contains the person's name; the privacy policy says it is
+sent. It is only shown, never used for identification: two PCs may share a
+name, and renaming one doesn't create a new installation.
 
 Dev builds (`cargo tauri dev`) use their own credential names
 (`…-dev`), so the developer can block a dev build without blocking the
@@ -65,8 +69,12 @@ several installations on one computer.
 `POST https://<project>.supabase.co/functions/v1/license`
 
 ```json
-{ "installationId": "uuid", "secret": "base64url(32 bytes)", "nonce": "base64url(16 bytes)", "appVersion": "1.2.0" }
+{ "installationId": "uuid", "secret": "base64url(32 bytes)", "nonce": "base64url(16 bytes)", "appVersion": "1.2.1", "deviceName": "LIAN-LAPTOP" }
 ```
+
+`deviceName` is optional (app 1.2.0 doesn't send it); the function drops
+control characters and keeps at most 64 characters, and the database keeps
+the last name it got.
 
 The function runs with `verify_jwt = false`: the app carries no Supabase key
 at all. The function validates the input strictly and calls
@@ -234,7 +242,7 @@ Read this before relying on the feature.
 ## Privacy
 
 What the server stores per installation: id, hash of the secret, status, app
-version, registration time, last contact, block time and reason, and the
+version, computer name, registration time, last contact, block time and reason, and the
 history of status changes. Supabase also logs requests (including the IP
 address) as part of running the service. The privacy policy
 (`docs/privacy/index.md`) says so.

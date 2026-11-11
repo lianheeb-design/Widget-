@@ -160,6 +160,7 @@ pub fn init(app: &AppHandle) -> bool {
         let version = app.package_info().version.to_string();
         let vault = SystemVault::new(app.path().app_local_data_dir().ok());
         Engine::load(config, vault, Http::new(), &version, now())
+            .map(|engine| engine.with_device_name(computer_name()))
             .inspect_err(|e| log::error!("license: can't start the check: {e}"))
             .ok()
     });
@@ -445,6 +446,12 @@ fn now() -> i64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |d| d.as_secs() as i64)
+}
+
+/// The computer's name as set in Windows (System → About), so the developer
+/// can tell in the dashboard which PC an installation runs on.
+fn computer_name() -> Option<String> {
+    std::env::var("COMPUTERNAME").ok()
 }
 
 /// ±20 %, so installations don't all retry at the same moment after an outage.

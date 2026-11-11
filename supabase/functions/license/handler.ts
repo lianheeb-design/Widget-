@@ -3,7 +3,12 @@
  * them, in a signed token, whether they may run.
  *
  * Request (POST, JSON):
- *   { installationId: uuid, secret: base64url(32 bytes), nonce: base64url, appVersion: "1.2.0" }
+ *   { installationId: uuid, secret: base64url(32 bytes), nonce: base64url, appVersion: "1.2.0",
+ *     deviceName?: "LIAN-LAPTOP" }
+ *
+ * `deviceName` (the computer's name, from app 1.2.1 on) only tells the
+ * developer which PC an installation runs on; it's optional, trimmed to 64
+ * characters, and control characters are dropped.
  *
  * Response 200: { token } — a JWT signed with Ed25519 (`alg: EdDSA`). Claims:
  *   iss    "island-license"
@@ -46,6 +51,7 @@ export type LicenseStore = (input: {
 	installationId: string;
 	secretHash: string;
 	appVersion: string;
+	deviceName: string | null;
 	maxRegistrationsPerMinute: number;
 }) => Promise<CheckResult>;
 
@@ -108,6 +114,7 @@ export function createHandler(deps: HandlerDeps): (req: Request) => Promise<Resp
 				installationId: input.installationId,
 				secretHash: await sha256Hex(input.secret),
 				appVersion: input.appVersion,
+				deviceName: input.deviceName,
 				maxRegistrationsPerMinute: config.maxRegistrationsPerMinute,
 			});
 		} catch (e) {
@@ -142,6 +149,7 @@ interface CheckRequest {
 	secret: string;
 	nonce: string;
 	appVersion: string;
+	deviceName: string | null;
 }
 
 export function parseRequest(text: string): CheckRequest | null {
@@ -152,12 +160,24 @@ export function parseRequest(text: string): CheckRequest | null {
 		return null;
 	}
 	if (!body || typeof body !== "object" || Array.isArray(body)) return null;
-	const { installationId, secret, nonce, appVersion } = body as Record<string, unknown>;
+	const { installationId, secret, nonce, appVersion, deviceName } = body as Record<string, unknown>;
 	if (typeof installationId !== "string" || !UUID_RE.test(installationId)) return null;
 	if (typeof secret !== "string" || !SECRET_RE.test(secret)) return null;
 	if (typeof nonce !== "string" || !NONCE_RE.test(nonce)) return null;
 	if (typeof appVersion !== "string" || appVersion.length > 32 || !VERSION_RE.test(appVersion)) return null;
-	return { installationId, secret, nonce, appVersion };
+	if (deviceName !== undefined && deviceName !== null && typeof deviceName !== "string") return null;
+	return { installationId, secret, nonce, appVersion, deviceName: cleanDeviceName(deviceName) };
+}
+
+/** A computer name fit to show: printable, trimmed, at most 64 characters, or null. */
+export function cleanDeviceName(raw: unknown): string | null {
+	if (typeof raw !== "string") return null;
+	// biome-ignore lint/suspicious/noControlCharactersInRegex: removing control characters is the point
+	const name = Array.from(raw.replace(/[\u0000-\u001f\u007f-\u009f]/g, "").trim())
+		.slice(0, 64)
+		.join("")
+		.trim();
+	return name || null;
 }
 
 /** Blocked wins; an active installation below the minimum version is "outdated". */
@@ -247,7 +267,7 @@ export function postgrestStore(supabaseUrl: string, serviceKey: string, fetchImp
 	const headers: Record<string, string> = { "Content-Type": "application/json", apikey: serviceKey };
 	if (serviceKey.split(".").length === 3) headers.Authorization = `Bearer ${serviceKey}`;
 
-	return async ({ installationId, secretHash, appVersion, maxRegistrationsPerMinute }) => {
+	return async ({ installationId, secretHash, appVersion, deviceName, maxRegistrationsPerMinute }) => {
 		const res = await fetchImpl(url, {
 			method: "POST",
 			headers,
@@ -256,6 +276,7 @@ export function postgrestStore(supabaseUrl: string, serviceKey: string, fetchImp
 				p_secret_hash: secretHash,
 				p_app_version: appVersion,
 				p_max_registrations_per_minute: maxRegistrationsPerMinute,
+				p_device_name: deviceName,
 			}),
 			signal: AbortSignal.timeout(8000),
 		});

@@ -70,7 +70,8 @@ export function StatusDialog({
 								? "Die Insel zeigt «Zugriff deaktiviert» und schaltet ihre Funktionen ab, sobald sie das nächste Mal prüft (während sie läuft innert etwa 10 Minuten, sonst beim nächsten Start)."
 								: "Die Insel läuft wieder normal, sobald sie das nächste Mal prüft."}
 						</p>
-						<code className="mt-1 font-mono text-[12px] text-text-faint">{installation.installation_id}</code>
+						<span className="mt-1 text-[13px]">{installation.device_name ?? "Gerät unbekannt"}</span>
+						<code className="font-mono text-[12px] text-text-faint">{installation.installation_id}</code>
 					</div>
 				</div>
 

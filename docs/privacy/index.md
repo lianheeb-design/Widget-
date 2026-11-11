@@ -7,7 +7,7 @@ Island for Windows ("the app") is a free, open-source desktop app published at [
 ## The short version
 
 - The app runs entirely on your computer. No account, no analytics, no telemetry, no ads, no crash reporting.
-- The one exception is the **access check** (when the build you received has it turned on): the app regularly tells the developer's server a random installation id and its version, and the server answers whether this installation may be used. Nothing else about you or your computer is sent. See [Access check](#access-check).
+- The one exception is the **access check** (when the build you received has it turned on): the app regularly tells the developer's server a random installation id, its version and the computer's name, and the server answers whether this installation may be used. Nothing else about you or your computer is sent. See [Access check](#access-check).
 - Apart from that, we (the developers) **never receive any of your data**.
 - When a feature needs an online service (Google Calendar, Spotify, GitHub, Anthropic, YouTube, update checks), the app talks to that service directly from your computer, and only after you turn that feature on.
 - We do not sell, rent or share your data with anyone.
@@ -87,10 +87,10 @@ To play a muted copy of a YouTube video you are watching in your browser, the ap
 
 Builds that have the access check turned on (`src-tauri/license.json` has an endpoint) let the developer disable single installations, for example a copy passed on against their wishes, and enable them again.
 
-- **What is sent:** a random installation id (created on the first start, not derived from your hardware or anything about you), a random secret that proves the id is yours, a random one-time value (so old answers can't be replayed), and the app's version number. Nothing else: no name, no e-mail address, no hardware details, nothing about what you do with the app.
+- **What is sent:** a random installation id (created on the first start, not derived from your hardware or anything about you), a random secret that proves the id is yours, a random one-time value (so old answers can't be replayed), the app's version number, and the computer's name as set in Windows (for example «LIAN-LAPTOP», so the developer can tell which PC an installation runs on; such names often contain the owner's first name). Nothing else: no e-mail address, no hardware details, nothing about what you do with the app.
 - **When:** at startup, every 10 minutes while the app runs, when the internet connection comes back, and when you click *Check now* (Settings → About → Access).
 - **Where it goes:** over HTTPS to the developer's [Supabase](https://supabase.com) project. Supabase, as the hosting provider, sees the request like any web server does (including your IP address) and keeps short-lived request logs under [its own privacy policy](https://supabase.com/privacy).
-- **What is stored on the server:** the installation id, a one-way hash of its secret, its status (active or blocked), the app version, when it was first and last seen, and, if the developer blocks it, when, why (a note for the developer) and who did it, with a history of these changes.
+- **What is stored on the server:** the installation id, a one-way hash of its secret, its status (active or blocked), the app version, the computer's name, when it was first and last seen, and, if the developer blocks it, when, why (a note for the developer) and who did it, with a history of these changes.
 - **How it is used:** only to decide whether this installation may run and to let the developer manage installations. It is not used for analytics, advertising or anything else, and not shared.
 - **If the installation is blocked**, the island shows "Access disabled" and stops its own features. It doesn't touch anything else on your computer.
 - **Offline:** after a successful check the app keeps working for 24 hours without a connection; after that it asks for a connection.

@@ -99,6 +99,43 @@ describe("license_check", () => {
 		expect((await check(id))[0]).toEqual({ outcome: "ok", status: "BLOCKED", registered: false });
 	});
 
+	test("stores the device name, keeps it when an older version sends none, follows a rename", async () => {
+		const id = crypto.randomUUID();
+		const deviceOf = async () =>
+			(
+				await db.pg.query<{ device_name: string | null }>(
+					"select device_name from licensing.installations where installation_id = $1",
+					[id],
+				)
+			).rows[0].device_name;
+		const checkFrom = (device: string | null) =>
+			db.as("service_role", "select * from public.license_check($1, $2, $3, $4, $5)", [
+				id,
+				HASH_A,
+				"1.2.1",
+				30,
+				device,
+			]);
+
+		await checkFrom("  LIAN-LAPTOP  ");
+		expect(await deviceOf()).toBe("LIAN-LAPTOP");
+		await check(id); // the 4-argument call of app 1.2.0 still works
+		expect(await deviceOf()).toBe("LIAN-LAPTOP");
+		await checkFrom("SCHUL-PC");
+		expect(await deviceOf()).toBe("SCHUL-PC");
+		await checkFrom("x".repeat(80));
+		expect(await deviceOf()).toBe("x".repeat(64));
+		// With the wrong secret nothing changes.
+		await db.as("service_role", "select * from public.license_check($1, $2, $3, $4, $5)", [
+			id,
+			HASH_B,
+			"1.2.1",
+			30,
+			"EVIL",
+		]);
+		expect(await deviceOf()).toBe("x".repeat(64));
+	});
+
 	test("keeps installations apart", async () => {
 		const [a, b] = [crypto.randomUUID(), crypto.randomUUID()];
 		await check(a, HASH_A);
@@ -201,6 +238,18 @@ describe("admin functions", () => {
 		const blocked = await list(null, "BLOCKED");
 		expect(blocked.map((r) => r.installation_id)).toEqual([ids[0]]);
 		expect((await list(ids[3].slice(0, 13), null))[0].installation_id).toBe(ids[3]);
+		// By computer name, with the name in the result.
+		await db.as("service_role", "select * from public.license_check($1, $2, $3, $4, $5)", [
+			ids[2],
+			HASH_A,
+			"1.2.1",
+			30,
+			"Wohnzimmer-PC",
+		]);
+		const byDevice = await list("wohnzimmer", null);
+		expect(byDevice.map((r) => [r.installation_id, (r as Row & { device_name: string }).device_name])).toEqual([
+			[ids[2], "Wohnzimmer-PC"],
+		]);
 		// Wildcards in the search are literal.
 		expect(await list("100%", null)).toHaveLength(1);
 		expect(await list("%", null)).toHaveLength(1);

@@ -6,6 +6,7 @@
 
 import { beforeEach, describe, expect, test } from "bun:test";
 import {
+	cleanDeviceName,
 	compareVersions,
 	createHandler,
 	type HandlerDeps,
@@ -71,8 +72,8 @@ let admin: string;
 const dbStore: LicenseStore = async (input) => {
 	const [row] = await db.as<{ outcome: string; status: string | null; registered: boolean }>(
 		"service_role",
-		"select * from public.license_check($1, $2, $3, $4)",
-		[input.installationId, input.secretHash, input.appVersion, input.maxRegistrationsPerMinute],
+		"select * from public.license_check($1, $2, $3, $4, $5)",
+		[input.installationId, input.secretHash, input.appVersion, input.maxRegistrationsPerMinute, input.deviceName],
 	);
 	return row as Awaited<ReturnType<LicenseStore>>;
 };
@@ -120,6 +121,29 @@ const setStatus = (id: string, status: "ACTIVE" | "BLOCKED") =>
 	db.as("authenticated", "select public.admin_set_installation_status($1, $2, null)", [id, status], admin);
 
 describe("status check", () => {
+	test("records the computer name, cleaned, and works without one", async () => {
+		const app = installation();
+		const send = (deviceName: unknown) =>
+			handler()(request({ ...app, nonce: randomB64url(16), appVersion: "1.2.1", deviceName }));
+		const stored = async () =>
+			(
+				await db.pg.query<{ device_name: string | null }>(
+					"select device_name from licensing.installations where installation_id = $1",
+					[app.installationId],
+				)
+			).rows[0].device_name;
+
+		expect((await send(" LIAN-\u0007LAPTOP\n")).status).toBe(200);
+		expect(await stored()).toBe("LIAN-LAPTOP");
+		// App 1.2.0 sends no name: the last one stays.
+		expect((await send(undefined)).status).toBe(200);
+		expect((await send(null)).status).toBe(200);
+		expect(await stored()).toBe("LIAN-LAPTOP");
+		expect((await send(42)).status).toBe(400);
+		expect(cleanDeviceName("é".repeat(70))).toBe("é".repeat(64));
+		expect(cleanDeviceName("   ")).toBeNull();
+	});
+
 	test("registers a new installation and signs an active token", async () => {
 		const app = installation();
 		const { res, claims, nonce } = await checkIn(app);
@@ -310,7 +334,13 @@ describe("configuration", () => {
 			calls.push({ url, init });
 			return new Response(JSON.stringify([{ outcome: "ok", status: "ACTIVE", registered: true }]));
 		}) as unknown as typeof fetch;
-		const input = { installationId: "id", secretHash: "h", appVersion: "1.0.0", maxRegistrationsPerMinute: 5 };
+		const input = {
+			installationId: "id",
+			secretHash: "h",
+			appVersion: "1.0.0",
+			deviceName: "PC",
+			maxRegistrationsPerMinute: 5,
+		};
 
 		expect(await postgrestStore("https://x.supabase.co/", "aaa.bbb.ccc", fakeFetch)(input)).toEqual({
 			outcome: "ok",
@@ -324,6 +354,7 @@ describe("configuration", () => {
 			p_secret_hash: "h",
 			p_app_version: "1.0.0",
 			p_max_registrations_per_minute: 5,
+			p_device_name: "PC",
 		});
 
 		await postgrestStore("https://x.supabase.co", "sb_secret_abc", fakeFetch)(input);

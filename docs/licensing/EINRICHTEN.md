@@ -150,7 +150,8 @@ Das Dashboard läuft nur auf deinem PC. Du kannst es auch bei einem Hoster für 
 ## Bedienung
 
 - **Übersicht:** Gesamtzahl, aktiv, gesperrt, *In Betrieb* (letzter Kontakt im gewählten Zeitraum) und neu registriert (7 Tage).
-- **Suchen** nach ID (auch Teilen davon), Version oder Sperrgrund; **filtern** nach Status.
+- **Gerät:** Ab App-Version 1.2.1 zeigt jede Zeile den **Computernamen** (wie in Windows unter *System → Info* eingestellt, z. B. `LIAN-LAPTOP`). Ältere Versionen zeigen «Gerät unbekannt», bis sie aktualisiert sind.
+- **Suchen** nach Gerät, ID (auch Teilen davon), Version oder Sperrgrund; **filtern** nach Status.
 - **Sperren:** In der Zeile oder in der Detailansicht auf *Sperren*, einen Grund eintragen (sieht nur du), bestätigen.
 - **Freigeben:** genauso, mit einer optionalen Notiz.
 - **Details:** Klick auf eine Zeile zeigt volle ID, Status, Registrierung, letzten Kontakt, Version, Sperrgrund und die **Sperrhistorie** (wer hat wann was gemacht).

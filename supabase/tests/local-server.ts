@@ -51,8 +51,8 @@ const config: LicenseConfig = {
 const store: LicenseStore = async (input) => {
 	const [row] = await db.as<Awaited<ReturnType<LicenseStore>>>(
 		"service_role",
-		"select * from public.license_check($1, $2, $3, $4)",
-		[input.installationId, input.secretHash, input.appVersion, input.maxRegistrationsPerMinute],
+		"select * from public.license_check($1, $2, $3, $4, $5)",
+		[input.installationId, input.secretHash, input.appVersion, input.maxRegistrationsPerMinute, input.deviceName],
 	);
 	return row;
 };
