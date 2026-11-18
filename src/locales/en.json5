@@ -608,6 +608,10 @@
     done: "Got it",
     hide: "Hide",
     none: "No notes for this version.",
+    v130: {
+      downloads: "Downloads: the newest files of your Downloads folder, with previews. Click opens one, drag it out to use it, or show it in its folder. You find it under the grid button.",
+      finished: "When a download is done, the island opens for a moment with it on top. You can turn that off in the Downloads settings.",
+    },
     v110: {
       place: "Place anywhere: turn it on in Settings → General to drag the island freely over the screen, down too. It stays where you let go.",
       smooth: "Closing a big panel in the island (an AI app, say) now settles calmly, without squashing.",

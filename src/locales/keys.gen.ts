@@ -414,6 +414,8 @@ export type MessageKey =
 	| "whatsnew.done"
 	| "whatsnew.hide"
 	| "whatsnew.none"
+	| "whatsnew.v130.downloads"
+	| "whatsnew.v130.finished"
 	| "whatsnew.v110.place"
 	| "whatsnew.v110.smooth"
 	| "whatsnew.v110.look"

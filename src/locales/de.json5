@@ -585,6 +585,10 @@
     done: "Alles klar",
     hide: "Ausblenden",
     none: "Für diese Version gibt es keine Hinweise.",
+    v130: {
+      downloads: "Downloads: die neuesten Dateien aus deinem Downloads-Ordner, mit Vorschau. Ein Klick öffnet sie, du kannst sie herausziehen oder im Ordner zeigen. Du findest sie über das Raster-Symbol.",
+      finished: "Ist ein Download fertig, öffnet sich die Insel kurz und zeigt ihn zuoberst. Das lässt sich in den Downloads-Einstellungen ausschalten.",
+    },
     v110: {
       place: "Überall platzierbar: Unter Einstellungen → Allgemein lässt sich einschalten, dass du die Insel frei über den Bildschirm ziehen kannst, auch nach unten. Sie bleibt, wo du sie loslässt.",
       smooth: "Schliesst du ein grosses Fenster in der Insel (z. B. eine KI-App), zieht sie sich jetzt ruhig zusammen, ohne zu verformen.",

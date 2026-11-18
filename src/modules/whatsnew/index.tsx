@@ -19,6 +19,7 @@ export const WHATS_NEW = "whatsnew";
 
 /** What each version brings, newest first. */
 export const RELEASE_NOTES: Record<string, MessageKey[]> = {
+	"1.3.0": ["whatsnew.v130.downloads", "whatsnew.v130.finished"],
 	"1.1.0": ["whatsnew.v110.place", "whatsnew.v110.smooth", "whatsnew.v110.look", "whatsnew.v110.fixes"],
 	"1.0.0": [
 		"whatsnew.v100.hello",
