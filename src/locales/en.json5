@@ -1447,6 +1447,27 @@
     remove: "Remove from the shelf",
   },
 
+  // Downloads module
+  downloads: {
+    title: "Downloads",
+    hint: "Click opens · drag out to use",
+    empty: "Nothing downloaded yet.",
+    noFolder: "No Downloads folder found.",
+    openFolder: "Open folder",
+    reveal: "Show in folder",
+    keep: "Keep on the shelf",
+    kept: "On the shelf",
+    ask: "Ask Claude about this",
+    // Badge on a download that just finished
+    new: "New",
+    // Instead of the size, for a folder (e.g. an unpacked zip)
+    folder: "Folder",
+    peekOnNew: {
+      label: "Show finished downloads",
+      desc: "The island opens for a moment when a download has finished.",
+    },
+  },
+
   // Clipboard module
   clipboard: {
     title: "Clipboard",

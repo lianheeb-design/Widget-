@@ -1384,6 +1384,24 @@
     remove: "Aus der Ablage entfernen",
   },
 
+  downloads: {
+    title: "Downloads",
+    hint: "Klick öffnet · herausziehen zum Verwenden",
+    empty: "Noch nichts heruntergeladen.",
+    noFolder: "Kein Downloads-Ordner gefunden.",
+    openFolder: "Ordner öffnen",
+    reveal: "Im Ordner zeigen",
+    keep: "In der Ablage behalten",
+    kept: "In der Ablage",
+    ask: "Claude dazu fragen",
+    new: "Neu",
+    folder: "Ordner",
+    peekOnNew: {
+      label: "Fertige Downloads zeigen",
+      desc: "Die Insel öffnet sich kurz, wenn ein Download fertig ist.",
+    },
+  },
+
   clipboard: {
     title: "Zwischenablage",
     copied: "Kopiert",

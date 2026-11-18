@@ -242,8 +242,9 @@ unsafe fn icon_picture(icon: HICON) -> Option<Picture> {
     })
 }
 
-/// A bitmap's pixels as top-down 32-bit BGRA rows.
-unsafe fn bitmap_bgra(bitmap: HBITMAP) -> Option<(u32, u32, Vec<u8>)> {
+/// A bitmap's pixels as top-down 32-bit BGRA rows. Also used for the
+/// downloads' previews.
+pub(crate) unsafe fn bitmap_bgra(bitmap: HBITMAP) -> Option<(u32, u32, Vec<u8>)> {
     if bitmap.is_invalid() {
         return None;
     }
